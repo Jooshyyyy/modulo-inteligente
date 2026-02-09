@@ -1,0 +1,38 @@
+# =====================
+# Node / Express
+# =====================
+backend/node_modules/
+backend/.env
+backend/npm-debug.log*
+backend/yarn-error.log*
+
+# =====================
+# Android / Kotlin
+# =====================
+android/.gradle/
+android/.idea/
+android/build/
+android/*.iml
+android/local.properties
+
+# =====================
+# General
+# =====================
+.DS_Store
+Thumbs.db
+
+# =====================
+# Logs
+# =====================
+*.log
+
+# =====================
+# Editor
+# =====================
+.vscode/
+.idea/
+
+# =====================
+# Sistema
+# =====================
+*.tmp
