@@ -9,11 +9,11 @@ backend/yarn-error.log*
 # =====================
 # Android / Kotlin
 # =====================
-android/.gradle/
-android/.idea/
-android/build/
-android/*.iml
-android/local.properties
+android-app/.gradle/
+android-app/.idea/
+android-app/build/
+android-app/*.iml
+android-app/local.properties
 
 # =====================
 # General
