@@ -53,6 +53,7 @@ const AuthController = {
         {
           id: usuario.id,
           rol: usuario.rol,
+          numero_carnet: usuario.numero_carnet, // Agrega esto
         },
         jwtConfig.secret,
         { expiresIn: jwtConfig.expiresIn },
