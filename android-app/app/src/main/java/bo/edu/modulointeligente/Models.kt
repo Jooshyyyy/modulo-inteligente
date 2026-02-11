@@ -31,3 +31,9 @@ data class RegistroRequest(
     val ocupacion: String?,
     val rol_id: Int = 2
 )
+data class CuentaResponse(
+    val numero_cuenta: String,
+    val tipo_cuenta: String,
+    val saldo: Double,
+    val moneda: String
+)

@@ -7,6 +7,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
+import kotlin.jvm.java
+
 private const val TAG = "LOGIN_FINANZAS"
 class MainActivity : AppCompatActivity() {
 
@@ -41,13 +43,34 @@ class MainActivity : AppCompatActivity() {
 
                     if (response.isSuccessful) {
                         val body = response.body()
-                        // ESTO ES LO QUE BUSCAREMOS EN LOGCAT:
-                        android.util.Log.d(TAG, "Token recibido: ${body?.token}")
-                        android.util.Log.d(TAG, "Usuario: ${body?.usuario?.nombre}")
+                        val userId = body?.usuario?.id
+                        val token = body?.token
+                        val nombre = body?.usuario?.nombre
 
-                        Toast.makeText(this@MainActivity, "Bienvenido ${body?.usuario?.nombre}", Toast.LENGTH_SHORT).show()
+                        if (token != null && userId != null) {
+                            // 1. Inicializar el persistidor de datos
+                            val sessionManager = SessionManager(this@MainActivity)
+
+                            // 2. Guardar ID y Token para que estén disponibles en toda la app
+                            sessionManager.saveAuthToken(token)
+                            sessionManager.saveUserId(userId)
+
+                            android.util.Log.d(TAG, "Sesión guardada - ID: $userId, Token: ${token.take(10)}...")
+                            Toast.makeText(this@MainActivity, "¡Bienvenido $nombre!", Toast.LENGTH_SHORT).show()
+
+                            // 3. Saltar a la pantalla de Dashboard (Consulta de Saldo)
+                            val intent = android.content.Intent(this@MainActivity, DashboardActivity::class.java)
+                            startActivity(intent)
+
+                            // Cerramos la pantalla de Login para que no pueda volver atrás al loguearse
+                            finish()
+                        } else {
+                            android.util.Log.e(TAG, "El servidor no envió Token o ID")
+                            Toast.makeText(this@MainActivity, "Error en los datos del servidor", Toast.LENGTH_SHORT).show()
+                        }
                     } else {
                         android.util.Log.e(TAG, "Error en el servidor: ${response.code()}")
+                        Toast.makeText(this@MainActivity, "Credenciales incorrectas", Toast.LENGTH_SHORT).show()
                     }
                 } catch (e: Exception) {
                     Toast.makeText(this@MainActivity, "Error de conexión: ${e.message}", Toast.LENGTH_SHORT).show()
