@@ -1,5 +1,6 @@
 package bo.edu.modulointeligente
 
+import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
@@ -12,8 +13,13 @@ interface ApiService {
     suspend fun login(@Body request: LoginRequest): retrofit2.Response<LoginResponse>
     @POST("api/auth/registro")
     suspend fun registrarUsuario(@Body request: RegistroRequest): retrofit2.Response<LoginResponse>
+    // Obtiene la cuenta principal (incluye el saldo y el ID de la cuenta)
     @GET("api/cuentas/mi-saldo/{usuario_id}")
-    suspend fun getSaldo(@Path("usuario_id") id: Int): retrofit2.Response<CuentaResponse>
+    suspend fun getSaldo(@Path("usuario_id") id: Int): Response<CuentaResponse>
+
+    // Obtiene la lista de movimientos usando el ID de la cuenta
+    @GET("api/cuentas/mis-movimientos/{cuenta_id}")
+    suspend fun getMovimientos(@Path("cuenta_id") id: Int): Response<List<MovimientoResponse>>
 }
 
 object RetrofitClient {

@@ -32,8 +32,16 @@ data class RegistroRequest(
     val rol_id: Int = 2
 )
 data class CuentaResponse(
+    val id: Int, // El ID de la tabla 'cuentas'
     val numero_cuenta: String,
     val tipo_cuenta: String,
     val saldo: Double,
     val moneda: String
+)
+
+data class MovimientoResponse(
+    val concepto: String,
+    val monto: Double,
+    val tipo: String, // 'INGRESO' o 'EGRESO'
+    val fecha: String
 )
