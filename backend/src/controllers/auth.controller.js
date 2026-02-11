@@ -5,9 +5,10 @@ const jwtConfig = require("../config/jwt");
 
 const AuthController = {
   registro: async (req, res) => {
+    
     try {
       const datos = req.body;
-
+      console.log("DATOS RECIBIDOS DESDE ANDROID:", req.body);
       // Verificar si el usuario ya existe
       const existente = await Usuario.buscarPorCarnet(datos.numero_carnet);
       if (existente) {

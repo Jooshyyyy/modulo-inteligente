@@ -1,40 +1,57 @@
 package bo.edu.modulointeligente
 
 import android.os.Bundle
-import android.util.Log
 import android.widget.Button
+import android.widget.EditText
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
-import java.net.HttpURLConnection
-import java.net.URL
-
+private const val TAG = "LOGIN_FINANZAS"
 class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val btn = findViewById<Button>(R.id.btnProbar)
-
-        btn.setOnClickListener {
-            probarBackend()
+        // Vincular componentes
+        val etCarnet = findViewById<EditText>(R.id.etCarnet)
+        val etPassword = findViewById<EditText>(R.id.etPassword)
+        val btnLogin = findViewById<Button>(R.id.btnLogin)
+        val btnIrRegistro = findViewById<Button>(R.id.btnIrRegistro)
+        btnIrRegistro.setOnClickListener {
+            val intent = android.content.Intent(this, RegistroActivity::class.java)
+            startActivity(intent)
         }
-    }
 
-    private fun probarBackend() {
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val url = URL("http://192.168.0.19:3000/api/test/estado")
-                val conn = url.openConnection() as HttpURLConnection
-                conn.requestMethod = "GET"
+        btnLogin.setOnClickListener {
+            val carnet = etCarnet.text.toString()
+            val pass = etPassword.text.toString()
 
-                val response = conn.inputStream.bufferedReader().readText()
-                Log.d("BACKEND", response)
+            if (carnet.isEmpty() || pass.isEmpty()) {
+                Toast.makeText(this, "Por favor llena los campos", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
 
-            } catch (e: Exception) {
-                Log.e("ERROR", e.message ?: "Error desconocido")
+            // Llamada al servidor usando Corrutinas
+            lifecycleScope.launch {
+                try {
+                    val request = LoginRequest(carnet, pass)
+                    val response = RetrofitClient.instance.login(request)
+
+                    if (response.isSuccessful) {
+                        val body = response.body()
+                        // ESTO ES LO QUE BUSCAREMOS EN LOGCAT:
+                        android.util.Log.d(TAG, "Token recibido: ${body?.token}")
+                        android.util.Log.d(TAG, "Usuario: ${body?.usuario?.nombre}")
+
+                        Toast.makeText(this@MainActivity, "Bienvenido ${body?.usuario?.nombre}", Toast.LENGTH_SHORT).show()
+                    } else {
+                        android.util.Log.e(TAG, "Error en el servidor: ${response.code()}")
+                    }
+                } catch (e: Exception) {
+                    Toast.makeText(this@MainActivity, "Error de conexión: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
