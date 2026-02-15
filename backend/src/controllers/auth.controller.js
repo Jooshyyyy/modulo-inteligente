@@ -1,11 +1,12 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const Usuario = require("../models/usuario.model");
+const Administrador = require("../models/administrador.model");
 const jwtConfig = require("../config/jwt");
 
 const AuthController = {
   registro: async (req, res) => {
-    
+
     try {
       const datos = req.body;
       console.log("DATOS RECIBIDOS DESDE ANDROID:", req.body);
@@ -23,12 +24,12 @@ const AuthController = {
       const nuevoUsuario = await Usuario.crear({
         ...datos,
         password_hash: hash,
-        rol_id: datos.rol_id || 2, // CLIENTE por defecto
+        // Rol es implícito al estar en la tabla usuarios (CLIENTE)
       });
 
       res.status(201).json({
         mensaje: "Usuario registrado correctamente",
-        usuario: nuevoUsuario,
+        usuario: { ...nuevoUsuario, rol: 'CLIENTE' },
       });
     } catch (error) {
       console.error(error);
@@ -40,7 +41,16 @@ const AuthController = {
     try {
       const { numero_carnet, password } = req.body;
 
-      const usuario = await Usuario.buscarPorCarnet(numero_carnet);
+      // Buscar en usuarios (CLIENTE)
+      let usuario = await Usuario.buscarPorCarnet(numero_carnet);
+      let rol = 'CLIENTE';
+
+      // Si no existe, buscar en administradores (ADMINISTRADOR)
+      if (!usuario) {
+        usuario = await Administrador.buscarPorCarnet(numero_carnet);
+        rol = 'ADMINISTRADOR';
+      }
+
       if (!usuario) {
         return res.status(401).json({ mensaje: "Credenciales inválidas" });
       }
@@ -53,8 +63,8 @@ const AuthController = {
       const token = jwt.sign(
         {
           id: usuario.id,
-          rol: usuario.rol,
-          numero_carnet: usuario.numero_carnet, // Agrega esto
+          rol: rol,
+          numero_carnet: usuario.numero_carnet,
         },
         jwtConfig.secret,
         { expiresIn: jwtConfig.expiresIn },
@@ -66,7 +76,7 @@ const AuthController = {
         usuario: {
           id: usuario.id,
           nombre: usuario.primer_nombre,
-          rol: usuario.rol,
+          rol: rol,
         },
       });
     } catch (error) {
