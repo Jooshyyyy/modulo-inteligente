@@ -44,3 +44,13 @@ VALUES (
     '0000000',
     1
 );
+
+CREATE TABLE cuentas (
+    id SERIAL PRIMARY KEY,
+    usuario_id INT REFERENCES usuarios(id) ON DELETE CASCADE,
+    numero_cuenta VARCHAR(20) UNIQUE NOT NULL,
+    tipo_cuenta VARCHAR(20), -- 'Caja de Ahorros', 'Corriente'
+    saldo DECIMAL(12, 2) DEFAULT 0.00,
+    moneda VARCHAR(5) DEFAULT 'BOB',
+    fecha_apertura TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

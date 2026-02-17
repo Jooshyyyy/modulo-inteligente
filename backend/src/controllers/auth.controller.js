@@ -1,19 +1,19 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const Usuario = require("../models/usuario.model");
+const Administrador = require("../models/administrador.model");
 const jwtConfig = require("../config/jwt");
 
 const AuthController = {
   registro: async (req, res) => {
     try {
       const datos = req.body;
-
+      console.log("DATOS RECIBIDOS:", datos);
+      
       // Verificar si el usuario ya existe
       const existente = await Usuario.buscarPorCarnet(datos.numero_carnet);
       if (existente) {
-        return res
-          .status(400)
-          .json({ mensaje: "El número de carnet ya está registrado" });
+        return res.status(400).json({ mensaje: "El número de carnet ya está registrado" });
       }
 
       // Encriptar contraseña
@@ -21,13 +21,18 @@ const AuthController = {
 
       const nuevoUsuario = await Usuario.crear({
         ...datos,
-        password_hash: hash,
-        rol_id: datos.rol_id || 2, // CLIENTE por defecto
+        password_hash: hash
       });
 
       res.status(201).json({
         mensaje: "Usuario registrado correctamente",
-        usuario: nuevoUsuario,
+        usuario: {
+            id: nuevoUsuario.id,
+            email: nuevoUsuario.email,
+            nombre: nuevoUsuario.primer_nombre,
+            apellido: nuevoUsuario.apellido_paterno,
+            rol: "CLIENTE"
+        }
       });
     } catch (error) {
       console.error(error);
@@ -39,11 +44,21 @@ const AuthController = {
     try {
       const { numero_carnet, password } = req.body;
 
-      const usuario = await Usuario.buscarPorCarnet(numero_carnet);
+      // 1. Buscar en Usuarios
+      let usuario = await Usuario.buscarPorCarnet(numero_carnet);
+      let rol = "CLIENTE";
+
+      // 2. Si no es usuario, buscar en Administradores
+      if (!usuario) {
+        usuario = await Administrador.buscarPorCarnet(numero_carnet);
+        rol = "ADMIN";
+      }
+
       if (!usuario) {
         return res.status(401).json({ mensaje: "Credenciales inválidas" });
       }
 
+      // Verificar contraseña
       const valido = await bcrypt.compare(password, usuario.password_hash);
       if (!valido) {
         return res.status(401).json({ mensaje: "Credenciales inválidas" });
@@ -52,10 +67,11 @@ const AuthController = {
       const token = jwt.sign(
         {
           id: usuario.id,
-          rol: usuario.rol,
+          rol: rol,
+          numero_carnet: usuario.numero_carnet,
         },
         jwtConfig.secret,
-        { expiresIn: jwtConfig.expiresIn },
+        { expiresIn: jwtConfig.expiresIn }
       );
 
       res.json({
@@ -64,7 +80,9 @@ const AuthController = {
         usuario: {
           id: usuario.id,
           nombre: usuario.primer_nombre,
-          rol: usuario.rol,
+          apellido: usuario.apellido_paterno,
+          rol: rol,
+          email: usuario.email
         },
       });
     } catch (error) {

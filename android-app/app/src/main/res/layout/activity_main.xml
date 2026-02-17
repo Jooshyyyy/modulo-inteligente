@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="30dp"
+        android:gravity="center"
+        android:background="#F5F5F5">
+
+        <ImageView
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:src="@mipmap/ic_launcher"
+            android:layout_marginBottom="20dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="DevSolutions"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:textColor="#1A237E"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Gestión Financiera Inteligente"
+            android:layout_marginBottom="40dp"/>
+
+        <EditText
+            android:id="@+id/etCarnet"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:hint="Número de Carnet"
+            android:inputType="number"
+            android:background="@android:drawable/editbox_background"
+            android:paddingLeft="15dp"
+            android:textColor="#000000"
+            android:textColorHint="#757575"
+            />
+
+        <EditText
+            android:id="@+id/etPassword"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:hint="Contraseña"
+            android:inputType="textPassword"
+            android:layout_marginTop="15dp"
+            android:background="@android:drawable/editbox_background"
+            android:paddingLeft="15dp"
+            android:textColor="#000000"
+            android:textColorHint="#757575"/>
+
+        <Button
+            android:id="@+id/btnLogin"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:text="INGRESAR"
+            android:backgroundTint="#1A237E"
+            android:textColor="@android:color/holo_green_dark"
+            android:layout_marginTop="30dp"/>
+        <Button
+            android:id="@+id/btnIrRegistro"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="¿No tienes cuenta? Regístrate aquí"
+            android:textColor="#1A237E"
+            android:layout_marginTop="10dp"/>
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
