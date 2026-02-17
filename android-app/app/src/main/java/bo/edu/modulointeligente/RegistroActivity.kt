@@ -27,10 +27,11 @@ class RegistroActivity : AppCompatActivity() {
                 numero_carnet = findViewById<EditText>(R.id.etCarnet).text.toString(),
                 telefono = findViewById<EditText>(R.id.etTelefono).text.toString(),
                 direccion = findViewById<EditText>(R.id.etDireccion).text.toString(),
-                ocupacion = findViewById<EditText>(R.id.etOcupacion).text.toString()
+                ocupacion = findViewById<EditText>(R.id.etOcupacion).text.toString(),
+                fecha_nacimiento = findViewById<EditText>(R.id.etFechaNacimiento).text.toString()
             )
 
-            if (req.primer_nombre.isEmpty() || req.email.isEmpty() || req.password.isEmpty()) {
+            if (req.primer_nombre.isEmpty() || req.email.isEmpty() || req.password.isEmpty() || req.fecha_nacimiento.isEmpty()) {
                 Toast.makeText(this, "Completa los campos obligatorios", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }

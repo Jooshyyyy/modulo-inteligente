@@ -16,7 +16,9 @@ data class LoginResponse(
 data class UsuarioData(
     val id: Int,
     val nombre: String,
-    val rol: String
+    val apellido: String?,
+    val rol: String,
+    val email: String?
 )
 data class RegistroRequest(
     val primer_nombre: String,
@@ -29,7 +31,7 @@ data class RegistroRequest(
     val telefono: String?,
     val direccion: String?,
     val ocupacion: String?,
-    val rol_id: Int = 2
+    val fecha_nacimiento: String
 )
 data class CuentaResponse(
     val id: Int, // El ID de la tabla 'cuentas'

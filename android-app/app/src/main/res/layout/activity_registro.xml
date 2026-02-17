@@ -143,6 +143,19 @@
             android:textColorHint="#666666"
             android:padding="12dp" />
 
+        <EditText
+            android:id="@+id/etFechaNacimiento"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:hint="Fecha de Nacimiento (YYYY-MM-DD)"
+            android:inputType="date"
+            android:textColor="#000000"
+            android:layout_marginTop="10dp"
+            android:background="@android:color/white"
+            android:paddingLeft="10dp"
+            android:textColorHint="#666666"
+            android:padding="12dp" />
+
         <Button
             android:id="@+id/btnRegistrarUsuario"
             android:layout_width="match_parent"
