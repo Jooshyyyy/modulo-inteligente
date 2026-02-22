@@ -20,6 +20,19 @@ interface ApiService {
     // Obtiene la lista de movimientos usando el ID de la cuenta
     @GET("api/cuentas/mis-movimientos/{cuenta_id}")
     suspend fun getMovimientos(@Path("cuenta_id") id: Int): Response<List<MovimientoResponse>>
+
+    // Contactos CRUD
+    @GET("api/contactos/usuario/{usuario_id}")
+    suspend fun getContactos(@Path("usuario_id") id: Int): Response<List<ContactoResponse>>
+
+    @POST("api/contactos")
+    suspend fun crearContacto(@Body request: ContactoRequest): Response<Any>
+
+    @retrofit2.http.PUT("api/contactos/{id}")
+    suspend fun actualizarContacto(@Path("id") id: Int, @Body request: ContactoRequest): Response<Any>
+
+    @retrofit2.http.DELETE("api/contactos/{id}")
+    suspend fun eliminarContacto(@Path("id") id: Int): Response<Any>
 }
 
 object RetrofitClient {

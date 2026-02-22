@@ -3,14 +3,20 @@ package bo.edu.modulointeligente
 import android.os.Bundle
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
+import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
+import com.google.android.material.navigation.NavigationView
 
-class DashboardActivity : AppCompatActivity() {
+class DashboardActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_dashboard) // El XML de la tarjeta azul
+        setContentView(R.layout.activity_dashboard)
+
+        // Setup Drawer
+        val drawerLayout = findViewById<DrawerLayout>(R.id.drawer_layout)
+        val navView = findViewById<NavigationView>(R.id.nav_view)
+        setupDrawer(drawerLayout, navView)
 
         val sessionManager = SessionManager(this)
         val userId = sessionManager.getUserId()

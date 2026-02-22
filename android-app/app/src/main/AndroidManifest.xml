@@ -13,6 +13,8 @@
         android:theme="@style/Theme.ModuloInteligente">
         <activity android:name=".RegistroActivity" android:exported="false" />
         <activity android:name=".DashboardActivity" android:exported="false" />
+        <activity android:name=".ContactosActivity" android:exported="false" />
+        <activity android:name=".ContactoFormActivity" android:exported="false" />
         <activity
             android:name=".MainActivity"
             android:exported="true">
