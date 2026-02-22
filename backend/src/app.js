@@ -14,6 +14,10 @@ app.use("/api/auth", authRoutes);
 const usuarioRoutes = require("./routes/usuario.routes");
 app.use("/api/usuarios", usuarioRoutes);
 
+// rutas administrador
+const administradorRoutes = require("./routes/administrador.routes");
+app.use("/api/administradores", administradorRoutes);
+
 // rutas test
 const testRoutes = require("./routes/test.routes");
 app.use("/api/test", testRoutes);
