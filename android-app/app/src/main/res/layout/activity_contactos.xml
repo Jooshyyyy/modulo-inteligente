@@ -22,19 +22,25 @@
             app:title="Contactos"
             app:titleTextColor="#FFFFFF" />
 
-        <FrameLayout
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvContactos"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="#F5F5F5">
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:paddingTop="8dp"
+            android:clipToPadding="false"
+            android:background="#F5F5F5"
+            tools:listitem="@layout/item_contacto" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="Sección de Contactos (Próximamente)"
-                android:textSize="18sp"
-                android:textColor="#757575" />
-        </FrameLayout>
+        <Button
+            android:id="@+id/btnAgregarContacto"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_margin="16dp"
+            android:text="Agregar Contacto"
+            android:backgroundTint="#1A237E"
+            android:textColor="#FFFFFF"
+            app:cornerRadius="8dp" />
     </LinearLayout>
 
     <com.google.android.material.navigation.NavigationView

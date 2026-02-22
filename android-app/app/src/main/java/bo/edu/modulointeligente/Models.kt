@@ -47,3 +47,26 @@ data class MovimientoResponse(
     val tipo: String, // 'INGRESO' o 'EGRESO'
     val fecha: String
 )
+
+data class ContactoResponse(
+    val id: Int,
+    val usuario_id: Int,
+    val nombre: String,
+    val alias: String?,
+    val cuenta_bancaria: String,
+    val nombre_banco: String,
+    val moneda: String,
+    val estado: String,
+    val fecha_registro: String,
+    val fecha_edicion: String
+)
+
+data class ContactoRequest(
+    val usuario_id: Int? = null,
+    val nombre: String,
+    val alias: String? = null,
+    val cuenta_bancaria: String,
+    val nombre_banco: String,
+    val moneda: String = "BOB",
+    val estado: String = "ACTIVO"
+)
