@@ -22,4 +22,16 @@ app.use("/api/administradores", administradorRoutes);
 const testRoutes = require("./routes/test.routes");
 app.use("/api/test", testRoutes);
 
+// rutas cuentas
+const cuentaRoutes = require("./routes/cuenta.routes");
+app.use("/api/cuentas", cuentaRoutes);
+
+// rutas movimientos
+const movimientoRoutes = require("./routes/movimiento.routes");
+app.use("/api/movimientos", movimientoRoutes);
+
+// rutas contactos
+const contactoRoutes = require("./routes/contacto.routes");
+app.use("/api/contactos", contactoRoutes);
+
 module.exports = app;
