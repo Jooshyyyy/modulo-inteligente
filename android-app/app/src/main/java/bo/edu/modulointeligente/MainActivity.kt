@@ -54,8 +54,9 @@ class MainActivity : AppCompatActivity() {
                             // 2. Guardar ID y Token para que estén disponibles en toda la app
                             sessionManager.saveAuthToken(token)
                             sessionManager.saveUserId(userId)
+                            sessionManager.saveUserName(nombre ?: "Usuario")
 
-                            android.util.Log.d(TAG, "Sesión guardada - ID: $userId, Token: ${token.take(10)}...")
+                            android.util.Log.d(TAG, "Sesión guardada - ID: $userId, Nombre: $nombre")
                             Toast.makeText(this@MainActivity, "¡Bienvenido $nombre!", Toast.LENGTH_SHORT).show()
 
                             // 3. Saltar a la pantalla de Dashboard (Consulta de Saldo)
