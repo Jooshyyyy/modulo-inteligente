@@ -30,4 +30,8 @@ app.use("/api/cuentas", cuentaRoutes);
 const movimientoRoutes = require("./routes/movimiento.routes");
 app.use("/api/movimientos", movimientoRoutes);
 
+// rutas contactos
+const contactoRoutes = require("./routes/contacto.routes");
+app.use("/api/contactos", contactoRoutes);
+
 module.exports = app;
