@@ -56,6 +56,9 @@ class MainActivity : AppCompatActivity() {
                             sessionManager.saveUserId(userId)
                             sessionManager.saveUserName(nombre ?: "Usuario")
 
+                            // 3. Establecer el token global para Retrofit
+                            RetrofitClient.authToken = token
+
                             android.util.Log.d(TAG, "Sesión guardada - ID: $userId, Nombre: $nombre")
                             Toast.makeText(this@MainActivity, "¡Bienvenido $nombre!", Toast.LENGTH_SHORT).show()
 

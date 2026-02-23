@@ -70,3 +70,12 @@ data class ContactoRequest(
     val moneda: String = "BOB",
     val estado: String = "ACTIVO"
 )
+
+data class TransferRequest(
+    val cuenta_id: Int,
+    val monto: Double,
+    val tipo: String = "TRANSFERENCIA",
+    val numero_cuenta_destino: String?,
+    val cuenta_destino_id: Int? = null,
+    val tipo_transaccion: String = "MOVIMIENTO_BANCARIO"
+)

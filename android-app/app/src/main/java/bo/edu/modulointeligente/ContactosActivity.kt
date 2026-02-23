@@ -26,6 +26,7 @@ class ContactosActivity : BaseActivity() {
 
         val sessionManager = SessionManager(this)
         usuarioId = sessionManager.getUserId()
+        RetrofitClient.authToken = sessionManager.fetchAuthToken()
 
         val rvContactos = findViewById<RecyclerView>(R.id.rvContactos)
         rvContactos.layoutManager = LinearLayoutManager(this)
