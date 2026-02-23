@@ -5,11 +5,10 @@ const MovimientoController = {
     // Crear un movimiento (INGRESO, EGRESO, o TRANSFERENCIA)
     crear: async (req, res) => {
         try {
-            const { cuenta_id, monto, tipo, concepto, tipo_transaccion, cuenta_destino_id } = req.body;
+            let { cuenta_id, monto, tipo, concepto, tipo_transaccion, cuenta_destino_id, numero_cuenta_destino } = req.body;
             const usuario_id = req.usuario.id;
 
-            // 1. Validar que la cuenta origen pertenezca al usuario autenticado
-            // Obtenemos la cuenta por su ID (o número si prefieres, pero aquí usamos ID de DB)
+            // ... previous logic to validate source account ...
             const cuentasUsuario = await Cuenta.listarPorUsuarioId(usuario_id);
             const cuentaPropia = cuentasUsuario.find(c => c.id === parseInt(cuenta_id));
 
@@ -18,6 +17,16 @@ const MovimientoController = {
             }
 
             if (tipo === 'TRANSFERENCIA') {
+                // Resolver ID de destino por número si se proporciona
+                if (!cuenta_destino_id && numero_cuenta_destino) {
+                    const cuentaDestino = await Cuenta.buscarPorNumero(numero_cuenta_destino);
+                    if (cuentaDestino) {
+                        cuenta_destino_id = cuentaDestino.id;
+                    } else {
+                        return res.status(404).json({ mensaje: "Cuenta de destino no encontrada" });
+                    }
+                }
+
                 if (!cuenta_destino_id) {
                     return res.status(400).json({ mensaje: "Se requiere una cuenta de destino para transferencias" });
                 }

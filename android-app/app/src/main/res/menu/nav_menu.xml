@@ -9,5 +9,9 @@
             android:id="@+id/nav_contactos"
             android:icon="@drawable/ic_contacts"
             android:title="Contactos" />
+        <item
+            android:id="@+id/nav_transferencia"
+            android:icon="@drawable/ic_transfer"
+            android:title="Transferencia" />
     </group>
 </menu>

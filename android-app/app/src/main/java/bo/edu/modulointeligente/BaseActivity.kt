@@ -34,8 +34,11 @@ open class BaseActivity : AppCompatActivity() {
                 R.id.nav_contactos -> {
                     if (this !is ContactosActivity) {
                         startActivity(Intent(this, ContactosActivity::class.java))
-                        // We don't finish dashboard to allow going back, but user said "everywhere" access
-                        // Usually we finish if it's a top-level destination
+                    }
+                }
+                R.id.nav_transferencia -> {
+                    if (this !is TransferenciaActivity) {
+                        startActivity(Intent(this, TransferenciaActivity::class.java))
                     }
                 }
             }

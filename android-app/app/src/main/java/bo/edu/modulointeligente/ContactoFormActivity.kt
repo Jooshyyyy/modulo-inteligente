@@ -66,6 +66,7 @@ class ContactoFormActivity : AppCompatActivity() {
             }
 
             val sessionManager = SessionManager(this)
+            RetrofitClient.authToken = sessionManager.fetchAuthToken()
             val usuario_id = sessionManager.getUserId()
 
             val request = ContactoRequest(
