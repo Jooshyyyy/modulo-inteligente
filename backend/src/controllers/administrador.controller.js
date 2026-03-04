@@ -1,6 +1,34 @@
 const Administrador = require("../models/administrador.model");
+const bcrypt = require("bcrypt");
 
 const AdministradorController = {
+    crear: async (req, res) => {
+        try {
+            const datos = req.body;
+            
+            // Verificar si el administrador ya existe
+            const existente = await Administrador.buscarPorCarnet(datos.numero_carnet);
+            if (existente) {
+                return res.status(400).json({ mensaje: "El número de carnet ya está registrado" });
+            }
+
+            // Encriptar contraseña
+            const hash = await bcrypt.hash(datos.password, 10);
+
+            const nuevoAdmin = await Administrador.crear({
+                ...datos,
+                password_hash: hash
+            });
+
+            res.status(201).json({
+                mensaje: "Administrador registrado correctamente",
+                administrador: nuevoAdmin
+            });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ mensaje: "Error al crear administrador" });
+        }
+    },
     perfil: async (req, res) => {
         try {
             const admin = await Administrador.buscarPorCarnet(req.usuario.numero_carnet);
