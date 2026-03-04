@@ -1,5 +1,5 @@
 package bo.edu.modulointeligente
-
+import bo.edu.modulointeligente.ProfileActivity
 import android.content.Intent
 import android.widget.TextView
 import androidx.appcompat.app.ActionBarDrawerToggle
@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.material.navigation.NavigationView
+
 
 open class BaseActivity : AppCompatActivity() {
 
@@ -22,6 +23,14 @@ open class BaseActivity : AppCompatActivity() {
         val headerView = navView.getHeaderView(0)
         val tvUserName = headerView.findViewById<TextView>(R.id.tvUserName)
         tvUserName.text = sessionManager.getUserName()
+
+        headerView.setOnClickListener {
+            if (this.javaClass != ProfileActivity::class.java) {
+                val intent = Intent(this, ProfileActivity::class.java)
+                startActivity(intent)
+                drawerLayout.closeDrawer(GravityCompat.START)
+            }
+        }
 
         navView.setNavigationItemSelectedListener { menuItem ->
             when (menuItem.itemId) {

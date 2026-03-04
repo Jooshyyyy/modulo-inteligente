@@ -15,10 +15,44 @@ data class LoginResponse(
 
 data class UsuarioData(
     val id: Int,
+    val primer_nombre: String,
+    val segundo_nombre: String?,
+    val apellido_paterno: String,
+    val apellido_materno: String?,
     val nombre: String,
     val apellido: String?,
     val rol: String,
     val email: String?
+)
+
+data class PerfilResponse(
+    val id: Int,
+    val primer_nombre: String,
+    val segundo_nombre: String?,
+    val apellido_paterno: String,
+    val apellido_materno: String?,
+    val email: String,
+    val numero_carnet: String,
+    val telefono: String?,
+    val direccion: String?,
+    val ocupacion: String?,
+    val fecha_nacimiento: String?,
+    val nombre_completo: String?
+)
+
+data class ProfileRequest(
+    val email: String?,
+    val password: String?,
+    val telefono: String?,
+    val ocupacion: String?,
+    val direccion: String?,
+    // Campos para administrador
+    val numero_carnet: String? = null,
+    val primer_nombre: String? = null,
+    val segundo_nombre: String? = null,
+    val apellido_paterno: String? = null,
+    val apellido_materno: String? = null,
+    val fecha_nacimiento: String? = null
 )
 data class RegistroRequest(
     val primer_nombre: String,

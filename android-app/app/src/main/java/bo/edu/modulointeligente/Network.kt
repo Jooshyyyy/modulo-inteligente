@@ -40,10 +40,16 @@ interface ApiService {
 
     @POST("api/movimientos/crear")
     suspend fun transferir(@Body request: TransferRequest): Response<Any>
+
+    @GET("api/usuarios/{id}")
+    suspend fun getPerfil(@Path("id") id: Int): Response<PerfilResponse>
+
+    @retrofit2.http.PUT("api/usuarios/{id}")
+    suspend fun actualizarPerfil(@Path("id") id: Int, @Body request: ProfileRequest): Response<Any>
 }
 
 object RetrofitClient {
-    private const val BASE_URL = "http://192.168.0.6:3000/"
+    private const val BASE_URL = "http://192.168.0.4:3000/"
     
     var authToken: String? = null
 

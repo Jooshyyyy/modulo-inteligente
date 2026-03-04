@@ -9,7 +9,7 @@ const AuthController = {
     try {
       const datos = req.body;
       console.log("DATOS RECIBIDOS:", datos);
-      
+
       // Verificar si el usuario ya existe
       const existente = await Usuario.buscarPorCarnet(datos.numero_carnet);
       if (existente) {
@@ -27,11 +27,15 @@ const AuthController = {
       res.status(201).json({
         mensaje: "Usuario registrado correctamente",
         usuario: {
-            id: nuevoUsuario.id,
-            email: nuevoUsuario.email,
-            nombre: nuevoUsuario.primer_nombre,
-            apellido: nuevoUsuario.apellido_paterno,
-            rol: "CLIENTE"
+          id: nuevoUsuario.id,
+          email: nuevoUsuario.email,
+          primer_nombre: nuevoUsuario.primer_nombre,
+          segundo_nombre: nuevoUsuario.segundo_nombre,
+          apellido_paterno: nuevoUsuario.apellido_paterno,
+          apellido_materno: nuevoUsuario.apellido_materno,
+          nombre: nuevoUsuario.primer_nombre,
+          apellido: nuevoUsuario.apellido_paterno,
+          rol: "CLIENTE"
         }
       });
     } catch (error) {
@@ -79,6 +83,10 @@ const AuthController = {
         token,
         usuario: {
           id: usuario.id,
+          primer_nombre: usuario.primer_nombre,
+          segundo_nombre: usuario.segundo_nombre,
+          apellido_paterno: usuario.apellido_paterno,
+          apellido_materno: usuario.apellido_materno,
           nombre: usuario.primer_nombre,
           apellido: usuario.apellido_paterno,
           rol: rol,
