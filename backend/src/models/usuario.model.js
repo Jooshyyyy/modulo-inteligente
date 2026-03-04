@@ -15,7 +15,7 @@ const Usuario = {
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
             RETURNING id, email, primer_nombre, apellido_paterno
         `;
-        
+
         const values = [
             data.primer_nombre,
             data.segundo_nombre || null,
@@ -73,15 +73,19 @@ const Usuario = {
                 email = COALESCE($5, email),
                 telefono = COALESCE($6, telefono),
                 direccion = COALESCE($7, direccion),
-                ocupacion = COALESCE($8, ocupacion)
-            WHERE id = $9
+                ocupacion = COALESCE($8, ocupacion),
+                password_hash = COALESCE($9, password_hash),
+                numero_carnet = COALESCE($10, numero_carnet),
+                fecha_nacimiento = COALESCE($11, fecha_nacimiento)
+            WHERE id = $12
             RETURNING id, primer_nombre, apellido_paterno, email
         `;
         const values = [
             data.primer_nombre, data.segundo_nombre,
             data.apellido_paterno, data.apellido_materno,
             data.email, data.telefono, data.direccion,
-            data.ocupacion, id
+            data.ocupacion, data.password_hash, data.numero_carnet,
+            data.fecha_nacimiento, id
         ];
         const result = await pool.query(query, values);
         return result.rows[0];

@@ -7,9 +7,9 @@ const UsuarioController = {
       const { numero_carnet, rol } = req.usuario;
       let usuario;
       if (rol === "ADMIN") {
-          usuario = await Administrador.buscarPorCarnet(numero_carnet);
+        usuario = await Administrador.buscarPorCarnet(numero_carnet);
       } else {
-          usuario = await Usuario.buscarPorCarnet(numero_carnet);
+        usuario = await Usuario.buscarPorCarnet(numero_carnet);
       }
       if (!usuario) {
         return res.status(404).json({ mensaje: "Usuario no encontrado" });
@@ -17,8 +17,8 @@ const UsuarioController = {
       // No devolver el password_hash
       const { password_hash, ...datosSinPassword } = usuario;
       res.json({
-          ...datosSinPassword,
-          nombre_completo: `${usuario.primer_nombre} ${usuario.apellido_paterno}`
+        ...datosSinPassword,
+        nombre_completo: `${usuario.primer_nombre} ${usuario.apellido_paterno}`
       });
     } catch (error) {
       console.error(error);
@@ -30,8 +30,8 @@ const UsuarioController = {
     try {
       const usuarios = await Usuario.listar();
       const sanitizados = usuarios.map(u => {
-          const { password_hash, ...uSinPss } = u;
-          return { ...uSinPss, nombre_completo: `${u.primer_nombre} ${u.apellido_paterno}` };
+        const { password_hash, ...uSinPss } = u;
+        return { ...uSinPss, nombre_completo: `${u.primer_nombre} ${u.apellido_paterno}` };
       });
       res.json(sanitizados);
     } catch (error) {
@@ -56,7 +56,37 @@ const UsuarioController = {
 
   actualizar: async (req, res) => {
     try {
-      const usuario = await Usuario.actualizar(req.params.id, req.body);
+      const { id } = req.params;
+      const { rol, id: usuarioIdAutenticado } = req.usuario;
+      const bcrypt = require("bcrypt"); // Asegurar que bcrypt está importado para el hash
+
+      let datosAActualizar = {};
+
+      if (rol === "CLIENTE") {
+        if (parseInt(id) !== parseInt(usuarioIdAutenticado)) {
+          return res.status(403).json({ mensaje: "No tienes permisos para editar este perfil" });
+        }
+
+        // El cliente solo puede editar estos campos permitidos
+        const { email, password, telefono, ocupacion, direccion } = req.body;
+        if (email) datosAActualizar.email = email;
+        if (telefono) datosAActualizar.telefono = telefono;
+        if (ocupacion) datosAActualizar.ocupacion = ocupacion;
+        if (direccion) datosAActualizar.direccion = direccion;
+
+        if (password) {
+          datosAActualizar.password_hash = await bcrypt.hash(password, 10);
+        }
+      } else if (rol === "ADMIN") {
+        // Administrador puede editar todo
+        datosAActualizar = { ...req.body };
+        if (datosAActualizar.password) {
+          datosAActualizar.password_hash = await bcrypt.hash(datosAActualizar.password, 10);
+          delete datosAActualizar.password;
+        }
+      }
+
+      const usuario = await Usuario.actualizar(id, datosAActualizar);
       if (!usuario) {
         return res.status(404).json({ mensaje: "Usuario no encontrado" });
       }
