@@ -4,6 +4,7 @@ const router = express.Router();
 const auth = require("../middlewares/auth.middleware");
 const AdministradorController = require("../controllers/administrador.controller");
 
+router.post("/", AdministradorController.crear);
 router.get("/perfil", auth, AdministradorController.perfil);
 router.get("/", auth, AdministradorController.listar);
 router.get("/:id", auth, AdministradorController.obtenerPorId);
