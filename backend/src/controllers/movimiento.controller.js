@@ -45,6 +45,7 @@ const MovimientoController = {
                     cuenta_id,
                     cuenta_destino_id,
                     monto,
+                    concepto,
                     tipo_transaccion: tipo_transaccion || 'MOVIMIENTO_BANCARIO',
                     numero_transaccion: `TRX-${Date.now()}`
                 });
