@@ -51,7 +51,7 @@ const Movimiento = {
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
             `;
             await client.query(insertEgreso, [
-                data.cuenta_id, data.monto, 'EGRESO', `Transferencia a cuenta ${data.cuenta_destino_id}`, 
+                data.cuenta_id, data.monto, 'EGRESO', data.concepto || `Transferencia a cuenta ${data.cuenta_destino_id}`, 
                 data.tipo_transaccion, data.cuenta_destino_id, 'COMPLETADO', data.numero_transaccion
             ]);
 
@@ -61,7 +61,7 @@ const Movimiento = {
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
             `;
             await client.query(insertIngreso, [
-                data.cuenta_destino_id, data.monto, 'INGRESO', `Transferencia recibida de cuenta ${data.cuenta_id}`, 
+                data.cuenta_destino_id, data.monto, 'INGRESO', data.concepto || `Transferencia recibida de cuenta ${data.cuenta_id}`, 
                 data.tipo_transaccion, data.cuenta_id, 'COMPLETADO', data.numero_transaccion
             ]);
 

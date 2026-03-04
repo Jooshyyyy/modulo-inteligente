@@ -110,6 +110,7 @@ data class TransferRequest(
     val monto: Double,
     val tipo: String = "TRANSFERENCIA",
     val numero_cuenta_destino: String?,
+    val concepto: String? = null,
     val cuenta_destino_id: Int? = null,
     val tipo_transaccion: String = "MOVIMIENTO_BANCARIO"
 )

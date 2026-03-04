@@ -34,6 +34,7 @@ class TransferenciaActivity : BaseActivity() {
         val etNombreDestino = findViewById<TextInputEditText>(R.id.etNombreDestino)
         val etCuentaDestino = findViewById<TextInputEditText>(R.id.etCuentaDestino)
         val etBancoDestino = findViewById<TextInputEditText>(R.id.etBancoDestino)
+        val etConcepto = findViewById<TextInputEditText>(R.id.etConcepto)
         val etMonto = findViewById<TextInputEditText>(R.id.etMonto)
         val btnTransferir = findViewById<Button>(R.id.btnTransferir)
 
@@ -65,7 +66,9 @@ class TransferenciaActivity : BaseActivity() {
                 return@setOnClickListener
             }
 
-            realizarTransferencia(cuentaSeleccionadaId, monto, cuentaDestino)
+            val concepto = etConcepto.text.toString()
+
+            realizarTransferencia(cuentaSeleccionadaId, monto, cuentaDestino, concepto, etNombreDestino.text.toString(), etBancoDestino.text.toString())
         }
     }
 
@@ -98,18 +101,35 @@ class TransferenciaActivity : BaseActivity() {
         }
     }
 
-    private fun realizarTransferencia(origenId: Int, monto: Double, destinoNumero: String) {
+    private fun realizarTransferencia(origenId: Int, monto: Double, destinoNumero: String, concepto: String, nombreDestino: String, bancoDestino: String) {
         lifecycleScope.launch {
             try {
                 val request = TransferRequest(
                     cuenta_id = origenId,
                     monto = monto,
-                    numero_cuenta_destino = destinoNumero
+                    numero_cuenta_destino = destinoNumero,
+                    concepto = concepto
                 )
                 val response = RetrofitClient.instance.transferir(request)
                 if (response.isSuccessful) {
                     Toast.makeText(this@TransferenciaActivity, "¡Transferencia Exitosa!", Toast.LENGTH_LONG).show()
-                    finish() // Regresar
+                    
+                    val sessionManager = SessionManager(this@TransferenciaActivity)
+                    val nombreEmisor = sessionManager.getUserName()
+                    val cuentaOrigen = findViewById<AutoCompleteTextView>(R.id.etCuentaOrigen).text.toString().split(" ")[0]
+
+                    val intent = android.content.Intent(this@TransferenciaActivity, TransferDetailsActivity::class.java).apply {
+                        putExtra("monto", monto)
+                        putExtra("concepto", concepto)
+                        putExtra("destinoNumero", destinoNumero)
+                        putExtra("nombreDestino", nombreDestino)
+                        putExtra("bancoDestino", bancoDestino)
+                        putExtra("nombreOrigen", nombreEmisor)
+                        putExtra("cuentaOrigen", cuentaOrigen)
+                        putExtra("fecha", java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", java.util.Locale.getDefault()).format(java.util.Date()))
+                    }
+                    startActivity(intent)
+                    finish()
                 } else {
                     Toast.makeText(this@TransferenciaActivity, "Error: ${response.message()}", Toast.LENGTH_SHORT).show()
                 }

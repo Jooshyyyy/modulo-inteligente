@@ -131,7 +131,7 @@
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="32dp"
+                    android:layout_marginBottom="16dp"
                     android:background="#C5C5C5"
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
@@ -142,6 +142,30 @@
                         android:hint="Monto a transferir"
                         android:inputType="numberDecimal" />
                 </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:background="#C5C5C5"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etConcepto"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Concepto"
+                        android:inputType="text" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Escribe un mensaje descriptivo sobre la categoría de tu transferencia (ej. Alquiler, Comida, etc.)"
+                    android:textColor="#757575"
+                    android:textSize="12sp"
+                    android:layout_marginBottom="32dp"
+                    android:fontFamily="sans-serif-light"/>
 
                 <Button
                     android:id="@+id/btnTransferir"
