@@ -5,9 +5,9 @@ const Cuenta = {
     crear: async (data) => {
         const query = `
             INSERT INTO cuentas (
-                usuario_id, numero_cuenta, tipo_cuenta, saldo, moneda
+                usuario_id, numero_cuenta, tipo_cuenta, saldo, moneda, estado
             )
-            VALUES ($1, $2, $3, $4, $5)
+            VALUES ($1, $2, $3, $4, $5, $6)
             RETURNING *
         `;
         const values = [
@@ -15,10 +15,25 @@ const Cuenta = {
             data.numero_cuenta,
             data.tipo_cuenta,
             data.saldo || 0.00,
-            data.moneda || 'BOB'
+            data.moneda || 'BOB',
+            data.estado || 'ACTIVA'
         ];
         const result = await pool.query(query, values);
         return result.rows[0];
+    },
+
+    // Contar cuántas cuentas tiene un usuario
+    contarPorUsuarioId: async (usuario_id) => {
+        const query = `SELECT COUNT(*) FROM cuentas WHERE usuario_id = $1`;
+        const result = await pool.query(query, [usuario_id]);
+        return parseInt(result.rows[0].count);
+    },
+
+    // Listar todas las cuentas de un usuario
+    listarPorUsuarioId: async (usuario_id) => {
+        const query = `SELECT * FROM cuentas WHERE usuario_id = $1 ORDER BY id ASC`;
+        const result = await pool.query(query, [usuario_id]);
+        return result.rows;
     },
 
     // Buscar cuenta por Usuario ID
