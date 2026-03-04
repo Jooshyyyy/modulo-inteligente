@@ -51,11 +51,24 @@ class MainActivity : AppCompatActivity() {
                             // 1. Inicializar el persistidor de datos
                             val sessionManager = SessionManager(this@MainActivity)
 
+                            // Construir el nombre completo
+                            val u = body.usuario
+                            val nombreCompleto = listOfNotNull(
+                                u.primer_nombre,
+                                u.segundo_nombre?.takeIf { it.isNotBlank() },
+                                u.apellido_paterno,
+                                u.apellido_materno?.takeIf { it.isNotBlank() }
+                            ).joinToString(" ")
+
                             // 2. Guardar ID y Token para que estén disponibles en toda la app
                             sessionManager.saveAuthToken(token)
                             sessionManager.saveUserId(userId)
+                            sessionManager.saveUserName(nombreCompleto.ifEmpty { "Usuario" })
 
-                            android.util.Log.d(TAG, "Sesión guardada - ID: $userId, Token: ${token.take(10)}...")
+                            // 3. Establecer el token global para Retrofit
+                            RetrofitClient.authToken = token
+
+                            android.util.Log.d(TAG, "Sesión guardada - ID: $userId, Nombre: $nombre")
                             Toast.makeText(this@MainActivity, "¡Bienvenido $nombre!", Toast.LENGTH_SHORT).show()
 
                             // 3. Saltar a la pantalla de Dashboard (Consulta de Saldo)

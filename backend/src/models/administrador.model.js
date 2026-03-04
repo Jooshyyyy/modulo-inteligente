@@ -38,7 +38,43 @@ const Administrador = {
 
     // Buscar por ID
     obtenerPorId: async (id) => {
-        const query = `SELECT id, primer_nombre, apellido_paterno, email FROM administradores WHERE id = $1`;
+        const query = `SELECT id, primer_nombre, segundo_nombre, apellido_paterno, apellido_materno, email, numero_carnet, telefono FROM administradores WHERE id = $1`;
+        const result = await pool.query(query, [id]);
+        return result.rows[0];
+    },
+
+    // Listar todos los administradores
+    listar: async () => {
+        const query = `SELECT id, primer_nombre, segundo_nombre, apellido_paterno, apellido_materno, email, numero_carnet, telefono FROM administradores ORDER BY id ASC`;
+        const result = await pool.query(query);
+        return result.rows;
+    },
+
+    // Actualizar administrador
+    actualizar: async (id, data) => {
+        const query = `
+            UPDATE administradores 
+            SET primer_nombre = COALESCE($1, primer_nombre),
+                segundo_nombre = COALESCE($2, segundo_nombre),
+                apellido_paterno = COALESCE($3, apellido_paterno),
+                apellido_materno = COALESCE($4, apellido_materno),
+                email = COALESCE($5, email),
+                telefono = COALESCE($6, telefono)
+            WHERE id = $7
+            RETURNING id, primer_nombre, apellido_paterno, email
+        `;
+        const values = [
+            data.primer_nombre, data.segundo_nombre,
+            data.apellido_paterno, data.apellido_materno,
+            data.email, data.telefono, id
+        ];
+        const result = await pool.query(query, values);
+        return result.rows[0];
+    },
+
+    // Eliminar administrador
+    eliminar: async (id) => {
+        const query = `DELETE FROM administradores WHERE id = $1 RETURNING id`;
         const result = await pool.query(query, [id]);
         return result.rows[0];
     }

@@ -22,6 +22,14 @@ class SessionManager(context: Context) {
         return prefs.getInt("USER_ID", -1)
     }
 
+    fun saveUserName(name: String) {
+        prefs.edit().putString("USER_NAME", name).apply()
+    }
+
+    fun getUserName(): String {
+        return prefs.getString("USER_NAME", "Usuario") ?: "Usuario"
+    }
+
     fun clearSession() {
         prefs.edit().clear().apply()
     }
