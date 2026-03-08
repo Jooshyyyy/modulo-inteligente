@@ -17,181 +17,200 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:padding="16dp"
+        android:clipToPadding="false">
 
-        <LinearLayout
+        <androidx.cardview.widget.CardView
             android:id="@+id/receiptContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="24dp"
-            android:layout_margin="16dp"
-            android:background="@android:color/white"
-            android:elevation="4dp">
+            app:cardCornerRadius="16dp"
+            app:cardElevation="6dp"
+            app:cardUseCompatPadding="true">
 
-            <ImageView
-                android:layout_width="80dp"
-                android:layout_height="80dp"
-                android:layout_gravity="center"
-                android:src="@android:drawable/checkbox_on_background"
-                app:tint="#4CAF50"
-                android:layout_marginBottom="16dp"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="¡Transferencia Exitosa!"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:textColor="#4CAF50"
-                android:layout_gravity="center"
-                android:layout_marginBottom="32dp"/>
-
-            <TextView
-                android:id="@+id/tvMonto"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="BOB 0.00"
-                android:textSize="32sp"
-                android:textStyle="bold"
-                android:textColor="#1A237E"
-                android:layout_gravity="center"
-                android:layout_marginBottom="32dp"/>
-
-            <View
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#E0E0E0"
-                android:layout_marginBottom="24dp"/>
-
-            <TextView
-                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Emisor"
-                android:textColor="#757575"
-                android:textSize="14sp"/>
+                android:orientation="vertical"
+                android:padding="24dp">
 
-            <TextView
-                android:id="@+id/tvNombreOrigen"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Nombre Emisor"
-                android:textSize="18sp"
-                android:textColor="#212121"
-                android:layout_marginBottom="16dp"/>
+                <FrameLayout
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/circle_background_light_green"
+                    android:layout_marginBottom="16dp">
+                    <ImageView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/baseline_check_circle_24"
+                        app:tint="#4CAF50"/>
+                </FrameLayout>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Cuenta de Origen"
-                android:textColor="#757575"
-                android:textSize="14sp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="¡Transferencia Exitosa!"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#4CAF50"
+                    android:layout_gravity="center"
+                    android:layout_marginBottom="12dp"/>
 
-            <TextView
-                android:id="@+id/tvCuentaOrigen"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0000000000"
-                android:textSize="18sp"
-                android:textColor="#212121"
-                android:layout_marginBottom="16dp"/>
+                <TextView
+                    android:id="@+id/tvMonto"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="BOB 0.00"
+                    android:textSize="36sp"
+                    android:textStyle="bold"
+                    android:textColor="#1A237E"
+                    android:layout_gravity="center"
+                    android:layout_marginBottom="24dp"/>
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#E0E0E0"
-                android:layout_marginBottom="24dp"
-                android:layout_marginTop="8dp"/>
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#E0E0E0"
+                    android:layout_marginBottom="24dp"/>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Destinatario"
-                android:textColor="#757575"
-                android:textSize="14sp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="EMISOR"
+                    android:textColor="#9E9E9E"
+                    android:textSize="11sp"
+                    android:letterSpacing="0.1"
+                    android:textStyle="bold" />
+                <TextView
+                    android:id="@+id/tvNombreOrigen"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Nombre Emisor"
+                    android:textSize="16sp"
+                    android:textColor="#212121"
+                    android:layout_marginBottom="12dp"/>
 
-            <TextView
-                android:id="@+id/tvNombreDestino"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Nombre"
-                android:textSize="18sp"
-                android:textColor="#212121"
-                android:layout_marginBottom="16dp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="CUENTA DE ORIGEN"
+                    android:textColor="#9E9E9E"
+                    android:textSize="11sp"
+                    android:letterSpacing="0.1"
+                    android:textStyle="bold" />
+                <TextView
+                    android:id="@+id/tvCuentaOrigen"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0000000000"
+                    android:textSize="16sp"
+                    android:textColor="#212121"
+                    android:layout_marginBottom="24dp"/>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Cuenta de Destino"
-                android:textColor="#757575"
-                android:textSize="14sp"/>
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#EEEEEE"
+                    android:layout_marginBottom="24dp"/>
 
-            <TextView
-                android:id="@+id/tvCuentaDestino"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0000000000"
-                android:textSize="18sp"
-                android:textColor="#212121"
-                android:layout_marginBottom="16dp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="DESTINATARIO"
+                    android:textColor="#9E9E9E"
+                    android:textSize="11sp"
+                    android:letterSpacing="0.1"
+                    android:textStyle="bold" />
+                <TextView
+                    android:id="@+id/tvNombreDestino"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Nombre"
+                    android:textSize="16sp"
+                    android:textColor="#212121"
+                    android:layout_marginBottom="12dp"/>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Banco"
-                android:textColor="#757575"
-                android:textSize="14sp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="CUENTA DE DESTINO"
+                    android:textColor="#9E9E9E"
+                    android:textSize="11sp"
+                    android:letterSpacing="0.1"
+                    android:textStyle="bold" />
+                <TextView
+                    android:id="@+id/tvCuentaDestino"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0000000000"
+                    android:textSize="16sp"
+                    android:textColor="#212121"
+                    android:layout_marginBottom="12dp"/>
 
-            <TextView
-                android:id="@+id/tvBancoDestino"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Banco Ejemplo"
-                android:textSize="18sp"
-                android:textColor="#212121"
-                android:layout_marginBottom="16dp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="BANCO"
+                    android:textColor="#9E9E9E"
+                    android:textSize="11sp"
+                    android:letterSpacing="0.1"
+                    android:textStyle="bold" />
+                <TextView
+                    android:id="@+id/tvBancoDestino"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Banco Ejemplo"
+                    android:textSize="16sp"
+                    android:textColor="#212121"
+                    android:layout_marginBottom="12dp"/>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Concepto"
-                android:textColor="#757575"
-                android:textSize="14sp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="CONCEPTO"
+                    android:textColor="#9E9E9E"
+                    android:textSize="11sp"
+                    android:letterSpacing="0.1"
+                    android:textStyle="bold" />
+                <TextView
+                    android:id="@+id/tvConcepto"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="---"
+                    android:textSize="16sp"
+                    android:textColor="#212121"
+                    android:layout_marginBottom="12dp"/>
 
-            <TextView
-                android:id="@+id/tvConcepto"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="---"
-                android:textSize="18sp"
-                android:textColor="#212121"
-                android:layout_marginBottom="16dp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="FECHA Y HORA"
+                    android:textColor="#9E9E9E"
+                    android:textSize="11sp"
+                    android:letterSpacing="0.1"
+                    android:textStyle="bold" />
+                <TextView
+                    android:id="@+id/tvFecha"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="01/01/2026 00:00"
+                    android:textSize="16sp"
+                    android:textColor="#212121"/>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Fecha y Hora"
-                android:textColor="#757575"
-                android:textSize="14sp"/>
-
-            <TextView
-                android:id="@+id/tvFecha"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="01/01/2026 00:00"
-                android:textSize="18sp"
-                android:textColor="#212121"
-                android:layout_marginBottom="16dp"/>
-
-        </LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
     </ScrollView>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="16dp"
-        android:background="@android:color/white">
+        android:padding="20dp"
+        android:background="@android:color/white"
+        android:elevation="8dp">
 
         <Button
             android:id="@+id/btnVolver"
@@ -199,10 +218,10 @@
             android:layout_height="56dp"
             android:layout_weight="1"
             android:text="Volver"
-            android:backgroundTint="#BDBDBD"
-            android:textColor="#212121"
+            android:backgroundTint="#EEEEEE"
+            android:textColor="#424242"
             android:layout_marginEnd="8dp"
-            app:cornerRadius="8dp" />
+            app:cornerRadius="28dp" />
 
         <Button
             android:id="@+id/btnGuardar"
@@ -213,7 +232,7 @@
             android:backgroundTint="#1A237E"
             android:textColor="#FFFFFF"
             android:layout_marginStart="8dp"
-            app:cornerRadius="8dp" />
+            app:cornerRadius="28dp" />
     </LinearLayout>
 
 </LinearLayout>
