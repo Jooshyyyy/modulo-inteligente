@@ -17,10 +17,10 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="#1A237E"
+            android:background="?attr/colorPrimary"
             app:navigationIcon="@drawable/ic_menu"
             app:title="Mis Cuentas"
-            app:titleTextColor="#FFFFFF" />
+            app:titleTextColor="?attr/colorOnPrimary" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -29,7 +29,7 @@
             android:textSize="18sp"
             android:textStyle="bold"
             android:layout_margin="16dp"
-            android:textColor="#1A237E"/>
+            android:textColor="?attr/colorPrimary"/>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvCuentas"
@@ -37,7 +37,7 @@
             android:layout_height="match_parent"
             android:paddingTop="8dp"
             android:clipToPadding="false"
-            android:background="#F5F5F5"
+            android:background="@color/bg_light"
             tools:listitem="@layout/item_cuenta" />
 
     </LinearLayout>
@@ -49,8 +49,8 @@
         android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
         android:src="@drawable/ic_refresh"
-        app:backgroundTint="#1A237E"
-        app:tint="#FFFFFF" />
+        app:backgroundTint="?attr/colorPrimary"
+        app:tint="?attr/colorOnPrimary" />
 
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/nav_view"

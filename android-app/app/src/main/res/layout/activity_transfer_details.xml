@@ -4,15 +4,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F5F5F5">
+    android:background="@color/bg_light">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="#1A237E"
+        android:background="?attr/colorPrimary"
         app:title="Comprobante de Transferencia"
-        app:titleTextColor="#FFFFFF" />
+        app:titleTextColor="?attr/colorOnPrimary" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -66,21 +66,21 @@
                     android:text="BOB 0.00"
                     android:textSize="36sp"
                     android:textStyle="bold"
-                    android:textColor="#1A237E"
+                    android:textColor="?attr/colorPrimary"
                     android:layout_gravity="center"
                     android:layout_marginBottom="24dp"/>
 
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:background="#E0E0E0"
+                    android:background="@color/divider"
                     android:layout_marginBottom="24dp"/>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="EMISOR"
-                    android:textColor="#9E9E9E"
+                    android:textColor="?android:attr/textColorSecondary"
                     android:textSize="11sp"
                     android:letterSpacing="0.1"
                     android:textStyle="bold" />
@@ -90,14 +90,14 @@
                     android:layout_height="wrap_content"
                     android:text="Nombre Emisor"
                     android:textSize="16sp"
-                    android:textColor="#212121"
+                    android:textColor="?android:attr/textColorPrimary"
                     android:layout_marginBottom="12dp"/>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="CUENTA DE ORIGEN"
-                    android:textColor="#9E9E9E"
+                    android:textColor="?android:attr/textColorSecondary"
                     android:textSize="11sp"
                     android:letterSpacing="0.1"
                     android:textStyle="bold" />
@@ -107,20 +107,20 @@
                     android:layout_height="wrap_content"
                     android:text="0000000000"
                     android:textSize="16sp"
-                    android:textColor="#212121"
+                    android:textColor="?android:attr/textColorPrimary"
                     android:layout_marginBottom="24dp"/>
 
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:background="#EEEEEE"
+                    android:background="@color/divider"
                     android:layout_marginBottom="24dp"/>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="DESTINATARIO"
-                    android:textColor="#9E9E9E"
+                    android:textColor="?android:attr/textColorSecondary"
                     android:textSize="11sp"
                     android:letterSpacing="0.1"
                     android:textStyle="bold" />
@@ -130,14 +130,14 @@
                     android:layout_height="wrap_content"
                     android:text="Nombre"
                     android:textSize="16sp"
-                    android:textColor="#212121"
+                    android:textColor="?android:attr/textColorPrimary"
                     android:layout_marginBottom="12dp"/>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="CUENTA DE DESTINO"
-                    android:textColor="#9E9E9E"
+                    android:textColor="?android:attr/textColorSecondary"
                     android:textSize="11sp"
                     android:letterSpacing="0.1"
                     android:textStyle="bold" />
@@ -147,14 +147,14 @@
                     android:layout_height="wrap_content"
                     android:text="0000000000"
                     android:textSize="16sp"
-                    android:textColor="#212121"
+                    android:textColor="?android:attr/textColorPrimary"
                     android:layout_marginBottom="12dp"/>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="BANCO"
-                    android:textColor="#9E9E9E"
+                    android:textColor="?android:attr/textColorSecondary"
                     android:textSize="11sp"
                     android:letterSpacing="0.1"
                     android:textStyle="bold" />
@@ -164,14 +164,14 @@
                     android:layout_height="wrap_content"
                     android:text="Banco Ejemplo"
                     android:textSize="16sp"
-                    android:textColor="#212121"
+                    android:textColor="?android:attr/textColorPrimary"
                     android:layout_marginBottom="12dp"/>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="CONCEPTO"
-                    android:textColor="#9E9E9E"
+                    android:textColor="?android:attr/textColorSecondary"
                     android:textSize="11sp"
                     android:letterSpacing="0.1"
                     android:textStyle="bold" />
@@ -181,14 +181,14 @@
                     android:layout_height="wrap_content"
                     android:text="---"
                     android:textSize="16sp"
-                    android:textColor="#212121"
+                    android:textColor="?android:attr/textColorPrimary"
                     android:layout_marginBottom="12dp"/>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="FECHA Y HORA"
-                    android:textColor="#9E9E9E"
+                    android:textColor="?android:attr/textColorSecondary"
                     android:textSize="11sp"
                     android:letterSpacing="0.1"
                     android:textStyle="bold" />
@@ -198,7 +198,7 @@
                     android:layout_height="wrap_content"
                     android:text="01/01/2026 00:00"
                     android:textSize="16sp"
-                    android:textColor="#212121"/>
+                    android:textColor="?android:attr/textColorPrimary"/>
 
             </LinearLayout>
         </androidx.cardview.widget.CardView>
@@ -209,7 +209,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:padding="20dp"
-        android:background="@android:color/white"
+        android:background="@color/surface_white"
         android:elevation="8dp">
 
         <Button
@@ -218,8 +218,8 @@
             android:layout_height="56dp"
             android:layout_weight="1"
             android:text="Volver"
-            android:backgroundTint="#EEEEEE"
-            android:textColor="#424242"
+            android:backgroundTint="@color/divider"
+            android:textColor="?android:attr/textColorPrimary"
             android:layout_marginEnd="8dp"
             app:cornerRadius="28dp" />
 
@@ -229,8 +229,8 @@
             android:layout_height="56dp"
             android:layout_weight="1"
             android:text="Guardar"
-            android:backgroundTint="#1A237E"
-            android:textColor="#FFFFFF"
+            android:backgroundTint="?attr/colorPrimary"
+            android:textColor="?attr/colorOnPrimary"
             android:layout_marginStart="8dp"
             app:cornerRadius="28dp" />
     </LinearLayout>

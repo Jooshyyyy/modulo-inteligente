@@ -3,14 +3,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#C5CAE9">
+    android:background="@color/bg_light">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="24dp"
-        app:cardBackgroundColor="#1B5E20">
+        app:cardBackgroundColor="@color/surface_white">
 
         <ImageView
             android:layout_width="64dp"
@@ -18,13 +18,13 @@
             android:layout_gravity="center"
             android:layout_marginBottom="16dp"
             android:src="@drawable/outline_app_registration_24"
-            app:tint="#3F51B5" />
+            app:tint="?attr/colorPrimary" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Registro"
-            android:textColor="#1A237E"
+            android:textColor="?attr/colorPrimary"
             android:textSize="32sp"
             android:textStyle="bold"
             android:layout_gravity="start"
@@ -34,7 +34,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Crea tu cuenta en DevSolutions"
-            android:textColor="#64748B"
+            android:textColor="?android:attr/textColorSecondary"
             android:textSize="16sp"
             android:layout_marginBottom="32dp"/>
 
@@ -44,7 +44,7 @@
             app:cardCornerRadius="16dp"
             app:cardElevation="2dp"
             android:layout_marginBottom="16dp"
-            app:cardBackgroundColor="#3D51B5">
+            app:cardBackgroundColor="@color/surface_white">
 
 
             <LinearLayout
@@ -57,7 +57,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Identidad"
-                    android:textColor="#000000"
+                    android:textColor="?android:attr/textColorPrimary"
                     android:textStyle="bold"
                     android:layout_marginBottom="16dp"/>
 
@@ -66,7 +66,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="Primer Nombre"
-                    app:boxBackgroundColor="#C5CAE9">
+                    app:boxBackgroundColor="@color/surface_white">>
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etPrimerNombre"
                         android:layout_width="match_parent"
@@ -79,7 +79,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:hint="Segundo Nombre"
-                    app:boxBackgroundColor="#C5CAE9">
+                    app:boxBackgroundColor="@color/surface_white">>
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etSegundoNombre"
                         android:layout_width="match_parent"
@@ -92,7 +92,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:hint="Apellido Paterno"
-                    app:boxBackgroundColor="#C5CAE9">
+                    app:boxBackgroundColor="@color/surface_white">>
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etApellidoPaterno"
                         android:layout_width="match_parent"
@@ -105,7 +105,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:hint="Apellido Materno"
-                    app:boxBackgroundColor="#C5CAE9">
+                    app:boxBackgroundColor="@color/surface_white">>
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etApellidoMaterno"
                         android:layout_width="match_parent"
@@ -120,7 +120,7 @@
             app:cardCornerRadius="16dp"
             app:cardElevation="2dp"
             android:layout_marginBottom="16dp"
-            app:cardBackgroundColor="#8C9EFF">
+            app:cardBackgroundColor="@color/surface_white">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -132,7 +132,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Contacto y Ubicación"
-                    android:textColor="#000000"
+                    android:textColor="?android:attr/textColorPrimary"
                     android:textStyle="bold"
                     android:layout_marginBottom="16dp"/>
 
@@ -183,7 +183,7 @@
             app:cardCornerRadius="16dp"
             app:cardElevation="2dp"
             android:layout_marginBottom="16dp"
-            app:cardBackgroundColor="#7986CB">
+            app:cardBackgroundColor="@color/surface_white">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -196,7 +196,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Otros Detalles"
-                    android:textColor="#000000"
+                    android:textColor="?android:attr/textColorPrimary"
                     android:textStyle="bold"
                     android:layout_marginBottom="16dp"/>
 
@@ -258,8 +258,8 @@
             android:layout_width="match_parent"
             android:layout_height="60dp"
             android:text="Crear mi cuenta"
-            android:backgroundTint="#1A237E"
-            android:textColor="#FFFFFF"
+            android:backgroundTint="?attr/colorPrimary"
+            android:textColor="?attr/colorOnPrimary"
             android:textStyle="bold"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="32dp"
