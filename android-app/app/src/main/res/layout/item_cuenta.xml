@@ -19,7 +19,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Caja de Ahorros"
-            android:textColor="#1976D2"
+            android:textColor="@color/secondary_gold"
             android:textSize="14sp"
             android:textStyle="bold" />
 
@@ -29,7 +29,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:text="CTA-12345678"
-            android:textColor="#424242"
+            android:textColor="?android:attr/textColorSecondary"
             android:textSize="16sp" />
 
         <TextView
@@ -38,7 +38,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="BOB 1,000.00"
-            android:textColor="#000000"
+            android:textColor="?android:attr/textColorPrimary"
             android:textSize="22sp"
             android:textStyle="bold" />
 

@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp"
-    android:background="#F5F5F5">
+    android:background="@color/bg_light">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -16,100 +16,100 @@
             android:text="Perfil de Usuario"
             android:textSize="24sp"
             android:textStyle="bold"
-            android:textColor="#3F51B5"
+            android:textColor="?attr/colorPrimary"
             android:layout_marginBottom="16dp" />
 
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Carnet de Identidad" android:textColor="#000000" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Carnet de Identidad" android:textColor="?android:attr/textColorPrimary" />
         <EditText android:id="@+id/etProfileCarnet"
             android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:background="@android:color/white"
-            android:textColor="#000000"
-            android:textColorHint="#757575"
+            android:background="@color/surface_white"
+            android:textColor="?android:attr/textColorPrimary"
+            android:textColorHint="?android:attr/textColorHint"
             android:padding="10dp"
             android:inputType="number" android:importantForAutofill="no" android:layout_marginBottom="8dp" />
 
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Primer Nombre" android:textColor="#000000" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Primer Nombre" android:textColor="?android:attr/textColorPrimary" />
         <EditText android:id="@+id/etProfilePrimerNombre"
             android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:background="@android:color/white"
-            android:textColor="#000000"
+            android:background="@color/surface_white"
+            android:textColor="?android:attr/textColorPrimary"
             android:padding="10dp"
             android:inputType="textPersonName" android:importantForAutofill="no" android:layout_marginBottom="8dp" />
 
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Segundo Nombre" android:textColor="#000000" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Segundo Nombre" android:textColor="?android:attr/textColorPrimary" />
         <EditText android:id="@+id/etProfileSegundoNombre"
             android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:background="@android:color/white"
-            android:textColor="#000000"
+            android:background="@color/surface_white"
+            android:textColor="?android:attr/textColorPrimary"
             android:padding="10dp"
             android:inputType="textPersonName" android:importantForAutofill="no" android:layout_marginBottom="8dp" />
 
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Apellido Paterno" android:textColor="#000000" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Apellido Paterno" android:textColor="?android:attr/textColorPrimary" />
         <EditText android:id="@+id/etProfileApellidoPaterno"
             android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:background="@android:color/white"
-            android:textColor="#000000"
+            android:background="@color/surface_white"
+            android:textColor="?android:attr/textColorPrimary"
             android:padding="10dp"
             android:inputType="textPersonName" android:importantForAutofill="no" android:layout_marginBottom="8dp" />
 
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Apellido Materno" android:textColor="#000000" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Apellido Materno" android:textColor="?android:attr/textColorPrimary" />
         <EditText android:id="@+id/etProfileApellidoMaterno"
             android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:background="@android:color/white"
-            android:textColor="#000000"
+            android:background="@color/surface_white"
+            android:textColor="?android:attr/textColorPrimary"
             android:padding="10dp"
             android:inputType="textPersonName" android:importantForAutofill="no" android:layout_marginBottom="8dp" />
 
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Fecha de Nacimiento" android:textColor="#000000" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Fecha de Nacimiento" android:textColor="?android:attr/textColorPrimary" />
         <EditText android:id="@+id/etProfileFechaNacimiento"
             android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:background="@android:color/white"
-            android:textColor="#000000"
+            android:background="@color/surface_white"
+            android:textColor="?android:attr/textColorPrimary"
             android:padding="10dp"
             android:inputType="date" android:importantForAutofill="no" android:layout_marginBottom="16dp" />
 
-        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#CCCCCC" android:layout_marginBottom="16dp" />
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" android:layout_marginBottom="16dp" />
 
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Email" android:textColor="#000000" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Email" android:textColor="?android:attr/textColorPrimary" />
         <EditText android:id="@+id/etProfileEmail"
             android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:background="@android:color/white"
-            android:textColor="#000000"
+            android:background="@color/surface_white"
+            android:textColor="?android:attr/textColorPrimary"
             android:padding="10dp"
             android:inputType="textEmailAddress" android:importantForAutofill="no" android:layout_marginBottom="8dp" />
 
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Contraseña (dejar en blanco)" android:textColor="#000000" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Contraseña (dejar en blanco)" android:textColor="?android:attr/textColorPrimary" />
         <EditText android:id="@+id/etProfilePassword"
             android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:background="@android:color/white"
-            android:textColor="#000000"
+            android:background="@color/surface_white"
+            android:textColor="?android:attr/textColorPrimary"
             android:padding="10dp"
             android:inputType="textPassword" android:importantForAutofill="no" android:layout_marginBottom="8dp" />
 
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Teléfono" android:textColor="#000000" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Teléfono" android:textColor="?android:attr/textColorPrimary" />
         <EditText
             android:id="@+id/etProfileTelefono"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@android:color/white"
-            android:textColor="#000000"
+            android:background="@color/surface_white"
+            android:textColor="?android:attr/textColorPrimary"
             android:padding="10dp"
             android:inputType="phone"
             android:importantForAutofill="no"
             android:layout_marginBottom="8dp" />
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Ocupación" android:textColor="#000000" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Ocupación" android:textColor="?android:attr/textColorPrimary" />
         <EditText android:id="@+id/etProfileOcupacion"
             android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:background="@android:color/white"
-            android:textColor="#000000"
+            android:background="@color/surface_white"
+            android:textColor="?android:attr/textColorPrimary"
             android:padding="10dp"
             android:inputType="text" android:importantForAutofill="no" android:layout_marginBottom="8dp" />
 
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Dirección" android:textColor="#000000" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Dirección" android:textColor="?android:attr/textColorPrimary" />
         <EditText android:id="@+id/etProfileDireccion"
             android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:background="@android:color/white"
-            android:textColor="#000000"
+            android:background="@color/surface_white"
+            android:textColor="?android:attr/textColorPrimary"
             android:padding="10dp"
             android:inputType="textPostalAddress" android:importantForAutofill="no" android:layout_marginBottom="24dp" />
 
@@ -118,8 +118,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Guardar Cambios"
-            android:backgroundTint="#4CAF50"
-            android:textColor="#FFFFFF" />
+            android:backgroundTint="?attr/colorPrimary"
+            android:textColor="?attr/colorOnPrimary" />
 
     </LinearLayout>
 </ScrollView>
