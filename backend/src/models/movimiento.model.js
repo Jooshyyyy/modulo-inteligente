@@ -49,8 +49,9 @@ const Movimiento = {
             const insertEgreso = `
                 INSERT INTO movimientos (cuenta_id, monto, tipo, concepto, tipo_transaccion, cuenta_destino_id, estado, numero_transaccion)
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                RETURNING id, concepto
             `;
-            await client.query(insertEgreso, [
+            const resEgreso = await client.query(insertEgreso, [
                 data.cuenta_id, data.monto, 'EGRESO', data.concepto || `Transferencia a cuenta ${data.cuenta_destino_id}`, 
                 data.tipo_transaccion, data.cuenta_destino_id, 'COMPLETADO', data.numero_transaccion
             ]);
@@ -59,14 +60,22 @@ const Movimiento = {
             const insertIngreso = `
                 INSERT INTO movimientos (cuenta_id, monto, tipo, concepto, tipo_transaccion, cuenta_destino_id, estado, numero_transaccion)
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                RETURNING id, concepto
             `;
-            await client.query(insertIngreso, [
+            const resIngreso = await client.query(insertIngreso, [
                 data.cuenta_destino_id, data.monto, 'INGRESO', data.concepto || `Transferencia recibida de cuenta ${data.cuenta_id}`, 
                 data.tipo_transaccion, data.cuenta_id, 'COMPLETADO', data.numero_transaccion
             ]);
 
             await client.query('COMMIT');
-            return { ok: true, nuevoSaldoOrigen: resOrigen.rows[0].saldo };
+            return { 
+                ok: true, 
+                nuevoSaldoOrigen: resOrigen.rows[0].saldo,
+                egresoId: resEgreso.rows[0].id,
+                conceptoEgreso: resEgreso.rows[0].concepto,
+                ingresoId: resIngreso.rows[0].id,
+                conceptoIngreso: resIngreso.rows[0].concepto
+            };
         } catch (error) {
             await client.query('ROLLBACK');
             throw error;
@@ -93,6 +102,13 @@ const Movimiento = {
         const query = `SELECT * FROM movimientos WHERE cuenta_id = $1 ORDER BY fecha DESC LIMIT $2`;
         const result = await pool.query(query, [cuenta_id, limite]);
         return result.rows;
+    },
+
+    // Actualizar la categoría de un movimiento
+    actualizarCategoria: async (movimiento_id, categoria_id) => {
+        const query = `UPDATE movimientos SET categoria_id = $1 WHERE id = $2 RETURNING *`;
+        const result = await pool.query(query, [categoria_id, movimiento_id]);
+        return result.rows[0];
     }
 };
 
