@@ -1,5 +1,27 @@
 const Movimiento = require('../models/movimiento.model');
 const Cuenta = require('../models/cuenta.model');
+const Categoria = require('../models/categoria.model');
+
+// Función "fire-and-forget" para no detener el Loop de NodeJS mientras la IA clasifica
+const categorizarAsync = async (concepto, movimientoId) => {
+    try {
+        const response = await fetch("http://localhost:8000/categorizar", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ descripcion: concepto })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            const categoriaId = await Categoria.obtenerIdPorNombre(data.categoria);
+            if (categoriaId) {
+                await Movimiento.actualizarCategoria(movimientoId, categoriaId);
+            }
+        }
+    } catch (error) {
+        console.warn("[IA] Fallo no crítico conectando a microservicio de python:", error.message);
+    }
+};
 
 const MovimientoController = {
     // Crear un movimiento (INGRESO, EGRESO, o TRANSFERENCIA)
@@ -50,6 +72,10 @@ const MovimientoController = {
                     numero_transaccion: `TRX-${Date.now()}`
                 });
 
+                // NO BLOQUEAR: Llamamos la categorización asíncrona para ambos movimientos creados
+                categorizarAsync(result.conceptoEgreso, result.egresoId);
+                categorizarAsync(result.conceptoIngreso, result.ingresoId);
+
                 return res.json({ mensaje: "Transferencia realizada con éxito", nuevoSaldo: result.nuevoSaldoOrigen });
             }
 
@@ -71,6 +97,9 @@ const MovimientoController = {
             // Actualizar saldo en la cuenta
             const nuevoSaldo = tipo === 'INGRESO' ? (parseFloat(cuentaPropia.saldo) + parseFloat(monto)) : (parseFloat(cuentaPropia.saldo) - parseFloat(monto));
             await Cuenta.actualizarSaldo(cuentaPropia.id, nuevoSaldo);
+
+            // NO BLOQUEAR: Trigger de IA asíncrono
+            categorizarAsync(movimiento.concepto, movimiento.id);
 
             res.status(201).json({ mensaje: "Movimiento registrado", movimiento, nuevoSaldo });
         } catch (error) {
