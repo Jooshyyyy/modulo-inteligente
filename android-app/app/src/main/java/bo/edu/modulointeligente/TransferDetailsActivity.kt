@@ -29,7 +29,7 @@ class TransferDetailsActivity : AppCompatActivity() {
         val tvFecha = findViewById<TextView>(R.id.tvFecha)
         val btnGuardar = findViewById<Button>(R.id.btnGuardar)
         val btnVolver = findViewById<Button>(R.id.btnVolver)
-        val receiptContainer = findViewById<LinearLayout>(R.id.receiptContainer)
+        val receiptContainer = findViewById<androidx.cardview.widget.CardView>(R.id.receiptContainer)
 
         // Obtener datos del Intent
         val monto = intent.getDoubleExtra("monto", 0.0)
