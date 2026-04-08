@@ -89,7 +89,7 @@ class DashboardActivity : BaseActivity() {
                 val response = RetrofitClient.instance.getPrediccionDia(fechaApi)
                 if (response.isSuccessful) {
                     response.body()?.let { pred ->
-                        findViewById<TextView>(R.id.tvPrediccionMonto).text = "$${pred.total}"
+                        findViewById<TextView>(R.id.tvPrediccionMonto).text = "Bs. ${pred.total}"
                         findViewById<TextView>(R.id.tvPrediccionNivel).text = pred.nivel
                         findViewById<TextView>(R.id.tvPrediccionDiferencia).text = pred.diferenciaPrevia
                         
@@ -102,11 +102,17 @@ class DashboardActivity : BaseActivity() {
                             
                             view.findViewById<TextView>(R.id.tvProbItemNombre).text = item.nombre
                             view.findViewById<TextView>(R.id.tvProbItemDetalle).text = "${item.hora} • ${item.porcentaje}% probabilidad"
-                            view.findViewById<TextView>(R.id.tvProbItemMonto).text = "$${item.monto}"
+                            view.findViewById<TextView>(R.id.tvProbItemMonto).text = "Bs. ${item.monto}"
                             
                             llLista.addView(view)
                         }
                     }
+                } else {
+                    // Si no es exitoso (ej. 404), limpiamos la vista
+                    findViewById<TextView>(R.id.tvPrediccionMonto).text = "Bs. 0.00"
+                    findViewById<TextView>(R.id.tvPrediccionNivel).text = "Sin predicción"
+                    findViewById<TextView>(R.id.tvPrediccionDiferencia).text = "No hay datos IA para este día"
+                    findViewById<LinearLayout>(R.id.llProbabilidadesList).removeAllViews()
                 }
             } catch (e: Exception) {
                 // Silencioso para caso de error de api
