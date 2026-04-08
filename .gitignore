@@ -16,6 +16,29 @@ android-app/*.iml
 android-app/local.properties
 
 # =====================
+# Python / Inteligencia Artificial
+# =====================
+# Entornos virtuales
+venv/
+env/
+ENV/
+.venv/
+.env/
+
+# Librerías y caché de Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Datos y Modelos (Archivos pesados)
+*.pkl
+*.joblib
+seed.sql
+seed_movimientos_generados.sql
+*.csv
+
+# =====================
 # General
 # =====================
 .DS_Store
