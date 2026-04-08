@@ -114,3 +114,17 @@ data class TransferRequest(
     val cuenta_destino_id: Int? = null,
     val tipo_transaccion: String = "MOVIMIENTO_BANCARIO"
 )
+
+data class ProbabilidadItem(
+    val nombre: String,
+    val hora: String,
+    val porcentaje: Int,
+    val monto: String
+)
+
+data class PrediccionResponse(
+    val total: String,
+    val nivel: String,
+    val diferenciaPrevia: String,
+    val probabilidades: List<ProbabilidadItem>
+)

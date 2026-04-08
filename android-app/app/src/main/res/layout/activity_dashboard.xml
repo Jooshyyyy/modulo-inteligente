@@ -19,27 +19,43 @@
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
             app:navigationIcon="@drawable/ic_menu"
-            app:title="Mis Cuentas"
+            app:title="Mi Banca"
             app:titleTextColor="?attr/colorOnPrimary" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Resumen de Cuentas"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:layout_margin="16dp"
-            android:textColor="?attr/colorPrimary"/>
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvCuentas"
+        <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:paddingTop="8dp"
-            android:clipToPadding="false"
-            android:background="@color/bg_light"
-            tools:listitem="@layout/item_cuenta" />
+            android:fillViewport="true">
+            
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+                
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Resumen de Cuentas"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:layout_margin="16dp"
+                    android:textColor="?attr/colorPrimary"/>
 
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvCuentas"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="8dp"
+                    android:clipToPadding="false"
+                    android:nestedScrollingEnabled="false"
+                    android:background="@color/bg_light"
+                    tools:listitem="@layout/item_cuenta" />
+
+                <!-- Card de Predicción IA -->
+                <include layout="@layout/layout_prediccion_card" />
+
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
     </LinearLayout>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton

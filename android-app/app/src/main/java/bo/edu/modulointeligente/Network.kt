@@ -46,6 +46,9 @@ interface ApiService {
 
     @retrofit2.http.PUT("api/usuarios/{id}")
     suspend fun actualizarPerfil(@Path("id") id: Int, @Body request: ProfileRequest): Response<Any>
+
+    @GET("api/predicciones/dia")
+    suspend fun getPrediccionDia(@retrofit2.http.Query("fecha") fecha: String): Response<PrediccionResponse>
 }
 
 object RetrofitClient {
