@@ -3,7 +3,7 @@ const Cuenta = require('../models/cuenta.model');
 const Categoria = require('../models/categoria.model');
 
 // Función "fire-and-forget" para no detener el Loop de NodeJS mientras la IA clasifica
-const categorizarAsync = async (concepto, movimientoId) => {
+const categorizarMovimiento = async (concepto, movimientoId) => {
     try {
         const response = await fetch("http://localhost:8000/categorizar", {
             method: "POST",
@@ -16,11 +16,13 @@ const categorizarAsync = async (concepto, movimientoId) => {
             const categoriaId = await Categoria.obtenerIdPorNombre(data.categoria);
             if (categoriaId) {
                 await Movimiento.actualizarCategoria(movimientoId, categoriaId);
+                return categoriaId;
             }
         }
     } catch (error) {
         console.warn("[IA] Fallo no crítico conectando a microservicio de python:", error.message);
     }
+    return null;
 };
 
 const MovimientoController = {
@@ -72,9 +74,11 @@ const MovimientoController = {
                     numero_transaccion: `TRX-${Date.now()}`
                 });
 
-                // NO BLOQUEAR: Llamamos la categorización asíncrona para ambos movimientos creados
-                categorizarAsync(result.conceptoEgreso, result.egresoId);
-                categorizarAsync(result.conceptoIngreso, result.ingresoId);
+                // SIN ESPERAR LA CATEGORIZACIÓN: Llamamos la categorización asíncronamente para ambos movimientos
+                Promise.all([
+                    categorizarMovimiento(result.conceptoEgreso, result.egresoId),
+                    categorizarMovimiento(result.conceptoIngreso, result.ingresoId)
+                ]).catch(console.error);
 
                 return res.json({ mensaje: "Transferencia realizada con éxito", nuevoSaldo: result.nuevoSaldoOrigen });
             }
@@ -98,8 +102,8 @@ const MovimientoController = {
             const nuevoSaldo = tipo === 'INGRESO' ? (parseFloat(cuentaPropia.saldo) + parseFloat(monto)) : (parseFloat(cuentaPropia.saldo) - parseFloat(monto));
             await Cuenta.actualizarSaldo(cuentaPropia.id, nuevoSaldo);
 
-            // NO BLOQUEAR: Trigger de IA asíncrono
-            categorizarAsync(movimiento.concepto, movimiento.id);
+            // SIN ESPERAR LA CATEGORIZACIÓN: Actualizamos el registro asíncronamente
+            categorizarMovimiento(movimiento.concepto, movimiento.id).catch(console.error);
 
             res.status(201).json({ mensaje: "Movimiento registrado", movimiento, nuevoSaldo });
         } catch (error) {
