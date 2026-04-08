@@ -39,6 +39,11 @@ class DashboardActivity : BaseActivity() {
         cargarCuentas()
     }
 
+    override fun onResume() {
+        super.onResume()
+        cargarCuentas()
+    }
+
     private fun cargarCuentas() {
         lifecycleScope.launch {
             try {

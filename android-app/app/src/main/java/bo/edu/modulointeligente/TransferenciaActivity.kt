@@ -102,6 +102,9 @@ class TransferenciaActivity : BaseActivity() {
     }
 
     private fun realizarTransferencia(origenId: Int, monto: Double, destinoNumero: String, concepto: String, nombreDestino: String, bancoDestino: String) {
+        val btnTransferir = findViewById<Button>(R.id.btnTransferir)
+        btnTransferir.isEnabled = false
+
         lifecycleScope.launch {
             try {
                 val request = TransferRequest(
@@ -132,9 +135,11 @@ class TransferenciaActivity : BaseActivity() {
                     finish()
                 } else {
                     Toast.makeText(this@TransferenciaActivity, "Error: ${response.message()}", Toast.LENGTH_SHORT).show()
+                    btnTransferir.isEnabled = true
                 }
             } catch (e: Exception) {
                 Toast.makeText(this@TransferenciaActivity, "Error de conexión", Toast.LENGTH_SHORT).show()
+                btnTransferir.isEnabled = true
             }
         }
     }
