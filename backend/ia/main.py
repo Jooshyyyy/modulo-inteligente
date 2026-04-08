@@ -5,12 +5,12 @@ from transformers import pipeline
 app = FastAPI(title="Categorizador de Gastos IA", description="Microservicio Zero-Shot para categorización asíncrona de movimientos bancarios")
 
 # Cargamos el modelo a la memoria al arrancar para evitar re-carga de Gb en cada petición.
-print("📥 Cargando modelo multilingüe MoritzLaurer/mDeBERTa-v3-base-mnli-xnli en memoria RAM... \n(Esto tardará unos segundos en arrancar)")
+print("Cargando modelo multilingüe MoritzLaurer/mDeBERTa-v3-base-mnli-xnli en memoria RAM... \n(Esto tardará unos segundos en arrancar)")
 try:
     clasificador = pipeline("zero-shot-classification", model="MoritzLaurer/mDeBERTa-v3-base-mnli-xnli")
-    print("✅ Modelo cargado con éxito. FastAPI escuchando en puerto.")
+    print("Modelo cargado con éxito. FastAPI escuchando en puerto.")
 except Exception as e:
-    print(f"❌ Error al cargar el modelo: {e}")
+    print(f"Error al cargar el modelo: {e}")
 
 CATEGORIAS_DISPONIBLES = [
     'Alimentación', 
