@@ -2,16 +2,26 @@ package bo.edu.modulointeligente
 
 import android.os.Bundle
 import android.widget.Toast
+import android.widget.TextView
+import android.widget.Button
+import android.widget.LinearLayout
+import android.view.LayoutInflater
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.navigation.NavigationView
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 class DashboardActivity : BaseActivity() {
     
     private lateinit var adapter: CuentaAdapter
+    private val calendar = Calendar.getInstance()
+    private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    private val displayFormat = SimpleDateFormat("EEEE, d 'de' MMMM", Locale("es", "ES"))
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,15 +43,24 @@ class DashboardActivity : BaseActivity() {
 
         findViewById<com.google.android.material.floatingactionbutton.FloatingActionButton>(R.id.fabRefresh).setOnClickListener {
             cargarCuentas()
-            Toast.makeText(this, "Actualizando cuentas...", Toast.LENGTH_SHORT).show()
+            cargarPrediccion()
+            Toast.makeText(this, "Actualizando...", Toast.LENGTH_SHORT).show()
+        }
+
+        findViewById<Button>(R.id.btnCambiarFalsaFecha).setOnClickListener {
+            calendar.add(Calendar.DAY_OF_YEAR, 1)
+            cargarPrediccion()
+            Toast.makeText(this, "Avanzando al siguiente día: " + displayFormat.format(calendar.time), Toast.LENGTH_SHORT).show()
         }
 
         cargarCuentas()
+        cargarPrediccion()
     }
 
     override fun onResume() {
         super.onResume()
         cargarCuentas()
+        // Opcional: cargarPrediccion() tmb se podria para refrescar, pero dejemos que no cambie la fecha simulada
     }
 
     private fun cargarCuentas() {
@@ -55,6 +74,43 @@ class DashboardActivity : BaseActivity() {
                 }
             } catch (e: Exception) {
                 Toast.makeText(this@DashboardActivity, "Error de conexión", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun cargarPrediccion() {
+        val fechaApi = dateFormat.format(calendar.time)
+        val fechaMostrar = displayFormat.format(calendar.time).replaceFirstChar { it.uppercase() }
+        
+        findViewById<TextView>(R.id.tvPrediccionFecha).text = fechaMostrar
+        
+        lifecycleScope.launch {
+            try {
+                val response = RetrofitClient.instance.getPrediccionDia(fechaApi)
+                if (response.isSuccessful) {
+                    response.body()?.let { pred ->
+                        findViewById<TextView>(R.id.tvPrediccionMonto).text = "$${pred.total}"
+                        findViewById<TextView>(R.id.tvPrediccionNivel).text = pred.nivel
+                        findViewById<TextView>(R.id.tvPrediccionDiferencia).text = pred.diferenciaPrevia
+                        
+                        val llLista = findViewById<LinearLayout>(R.id.llProbabilidadesList)
+                        llLista.removeAllViews()
+                        
+                        pred.probabilidades.forEach { item ->
+                            val view = LayoutInflater.from(this@DashboardActivity)
+                                .inflate(R.layout.item_probabilidad_ia, llLista, false)
+                            
+                            view.findViewById<TextView>(R.id.tvProbItemNombre).text = item.nombre
+                            view.findViewById<TextView>(R.id.tvProbItemDetalle).text = "${item.hora} • ${item.porcentaje}% probabilidad"
+                            view.findViewById<TextView>(R.id.tvProbItemMonto).text = "$${item.monto}"
+                            
+                            llLista.addView(view)
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                // Silencioso para caso de error de api
+                e.printStackTrace()
             }
         }
     }

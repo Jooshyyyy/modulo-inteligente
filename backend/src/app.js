@@ -34,4 +34,8 @@ app.use("/api/movimientos", movimientoRoutes);
 const contactoRoutes = require("./routes/contacto.routes");
 app.use("/api/contactos", contactoRoutes);
 
+// rutas prediccion
+const prediccionRoutes = require("./routes/prediccion.routes");
+app.use("/api/predicciones", prediccionRoutes);
+
 module.exports = app;
