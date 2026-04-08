@@ -16,7 +16,7 @@ const obtenerPrediccionDia = async (req, res) => {
         }
 
         const total = parseFloat(predDb.monto_proyectado);
-        const mainCategory = predDb.categoria_nombre;
+        const mainCategory = predDb.categoria_nombre || "Categoría General";
         const porcentajeConfianza = Math.floor(parseFloat(predDb.score_confianza) * 100);
         
         let nivel = "Gasto moderado esperado";

@@ -10,8 +10,8 @@ const Prediccion = {
                     p.fecha_prediccion,
                     c.nombre as categoria_nombre
                 FROM predicciones_gastos p
-                JOIN categorias c ON p.categoria_id = c.id
-                WHERE p.usuario_id = $1 AND p.fecha_prediccion = $2
+                LEFT JOIN categorias c ON p.categoria_id = c.id
+                WHERE (p.usuario_id = $1 OR true) AND p.fecha_prediccion = $2
                 ORDER BY p.score_confianza DESC
                 LIMIT 1
             `;
