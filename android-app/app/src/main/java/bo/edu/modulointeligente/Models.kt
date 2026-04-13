@@ -1,5 +1,7 @@
 package bo.edu.modulointeligente
 
+import com.google.gson.annotations.SerializedName
+
 // Lo que envía
 data class LoginRequest(
     val numero_carnet: String,
@@ -79,7 +81,11 @@ data class MovimientoResponse(
     val concepto: String,
     val monto: Double,
     val tipo: String, // 'INGRESO' o 'EGRESO'
-    val fecha: String
+    val fecha: String,
+    @SerializedName("categoria_id")
+    val categoriaId: Int? = null,
+    @SerializedName(value = "categoria_nombre", alternate = ["categoria", "nombre_categoria"])
+    val categoriaNombre: String? = null
 )
 
 data class ContactoResponse(
