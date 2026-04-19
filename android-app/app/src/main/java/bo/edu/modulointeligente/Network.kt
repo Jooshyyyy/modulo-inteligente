@@ -52,7 +52,7 @@ interface ApiService {
 }
 
 object RetrofitClient {
-    private const val BASE_URL = "http://192.168.13.61:3000/"
+    private const val BASE_URL = "http://192.168.0.7:3000/"
     
     var authToken: String? = null
 
