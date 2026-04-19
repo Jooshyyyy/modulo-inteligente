@@ -38,4 +38,8 @@ app.use("/api/contactos", contactoRoutes);
 const prediccionRoutes = require("./routes/prediccion.routes");
 app.use("/api/predicciones", prediccionRoutes);
 
+// metas de ahorro + coach IA
+const metaRoutes = require("./routes/meta.routes");
+app.use("/api/metas", metaRoutes);
+
 module.exports = app;

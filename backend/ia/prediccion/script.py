@@ -51,52 +51,57 @@ def run():
         dia_mes = current_date.day
         mes = current_date.month
 
-        # --- PATRÓN 1: TRANSPORTE (Lunes a Sábado) ---
-        if dia_sem <= 5: 
-            monto_trans = round(random.uniform(9.5, 10.5), 2) # Casi constante
-            registros.append((cuenta_id, monto_trans, 'EGRESO', 'Micro', 
-                            current_date.replace(hour=7, minute=0), 'PAGO_QR', cat_map['transporte'], 'COMPLETADO'))
+        # --- PATRÓN 1: TRANSPORTE (Usa Micro en semana, Taxi en fin de semana) ---
+        if dia_sem <= 4: # Lunes a Viernes
+            monto_trans = 2.00 # Micro ida y vuelta = 4.00, pero pongamos viajes individuales
+            registros.append((cuenta_id, 2.00, 'EGRESO', 'Pasaje Micro (Efectivo)', 
+                            current_date.replace(hour=7, minute=0), 'EFECTIVO', cat_map['transporte'], 'COMPLETADO'))
+            registros.append((cuenta_id, 2.00, 'EGRESO', 'Pasaje Micro (Efectivo)', 
+                            current_date.replace(hour=14, minute=0), 'EFECTIVO', cat_map['transporte'], 'COMPLETADO'))
+        else: # Sábado y Domingo (Fines de semana, usa Taxi)
+            monto_taxi = round(random.uniform(20.0, 35.0), 2)
+            registros.append((cuenta_id, monto_taxi, 'EGRESO', 'Taxi/Uber Fin de Semana', 
+                            current_date.replace(hour=random.choice([19, 21, 23]), minute=random.randint(0, 59)), 'PAGO_QR', cat_map['transporte'], 'COMPLETADO'))
 
-        # --- PATRÓN 2: ALIMENTACIÓN (Diario con varianza controlada) ---
-        # Almuerzo: Más caro los fines de semana
-        base_almuerzo = 20.0 if dia_sem < 5 else 45.0
-        monto_almuerzo = round(random.uniform(base_almuerzo - 2, base_almuerzo + 2), 2)
-        registros.append((cuenta_id, monto_almuerzo, 'EGRESO', 'Almuerzo', 
+        # --- PATRÓN 2: ALIMENTACIÓN (Almuerzo universitario, más caro findes) ---
+        base_almuerzo = 15.0 if dia_sem <= 4 else 50.0 # Entre semana pensión/comida en la U, fin de semana comida fuerte
+        monto_almuerzo = round(random.uniform(base_almuerzo - 2, base_almuerzo + 15), 2)
+        registros.append((cuenta_id, monto_almuerzo, 'EGRESO', 'Almuerzo/Cena', 
                         current_date.replace(hour=13, minute=0), 'PAGO_QR', cat_map['alimentacion'], 'COMPLETADO'))
         
-        # Snack/Café: Solo los martes y jueves (Días de clases pesadas)
+        # Snack/Café
         if dia_sem in [1, 3]:
-            monto_snack = round(random.uniform(12.0, 15.0), 2)
-            registros.append((cuenta_id, monto_snack, 'EGRESO', 'Snack Academico', 
+            monto_snack = round(random.uniform(10.0, 18.0), 2)
+            registros.append((cuenta_id, monto_snack, 'EGRESO', 'Snack U', 
                             current_date.replace(hour=16, minute=0), 'PAGO_QR', cat_map['alimentacion'], 'COMPLETADO'))
 
-        # --- PATRÓN 3: SERVICIOS Y FIJOS (Anclas Mensuales) ---
-        if dia_mes == 2:
-            registros.append((cuenta_id, 160.00, 'EGRESO', 'Internet Tigo', 
-                            current_date.replace(hour=10, minute=0), 'TRANSFERENCIA', cat_map['servicios'], 'COMPLETADO'))
-        
-        if dia_mes == 5:
-            monto_alquiler = round(random.uniform(980.0, 1000.0), 2)
-            registros.append((cuenta_id, monto_alquiler, 'EGRESO', 'Alquiler Mensual', 
+        # --- PATRÓN 3: VIVIENDA Y SERVICIOS FIJOS (Inicio de mes) ---
+        if dia_mes == 1:
+            monto_alquiler = round(random.uniform(1400.0, 1600.0), 2) # Alquiler de cuarto/depa pequeño
+            registros.append((cuenta_id, monto_alquiler, 'EGRESO', 'Alquiler Departamento', 
                             current_date.replace(hour=9, minute=0), 'TRANSFERENCIA', cat_map['vivienda'], 'COMPLETADO'))
+        
+        if dia_mes == 2:
+            registros.append((cuenta_id, 160.00, 'EGRESO', 'Internet Tigo/Entel', 
+                            current_date.replace(hour=10, minute=0), 'TRANSFERENCIA', cat_map['servicios'], 'COMPLETADO'))
 
-        # --- PATRÓN 4: EDUCACIÓN (Picos Semestrales) ---
-        if dia_mes == 15 and mes in [2, 8]: # Febrero y Agosto
-            monto_libros = round(random.uniform(150.0, 200.0), 2)
-            registros.append((cuenta_id, monto_libros, 'EGRESO', 'Compra Libros/Materiales', 
+        # --- PATRÓN 4: EDUCACIÓN (Materiales esporádicos) ---
+        if dia_mes == 15 and mes in [2, 8]:
+            monto_libros = round(random.uniform(200.0, 300.0), 2)
+            registros.append((cuenta_id, monto_libros, 'EGRESO', 'Material Universitario', 
                             current_date.replace(hour=11, minute=0), 'PAGO_QR', cat_map['educacion'], 'COMPLETADO'))
 
-        # --- PATRÓN 5: ENTRETENIMIENTO (Sesgo de Viernes y Sábado) ---
-        if dia_sem in [4, 5]: 
-            monto_ocio = round(random.uniform(80.0, 120.0), 2)
-            registros.append((cuenta_id, monto_ocio, 'EGRESO', 'Cine', 
-                            current_date.replace(hour=20, minute=0), 'PAGO_QR', cat_map['entretenimiento'], 'COMPLETADO'))
+        # --- PATRÓN 5: ENTRETENIMIENTO (Excesivo fin de semana) ---
+        if dia_sem in [4, 5]: # Viernes o Sábado
+            monto_ocio = round(random.uniform(100.0, 250.0), 2)
+            registros.append((cuenta_id, monto_ocio, 'EGRESO', 'Salida/Boliche/Cine', 
+                            current_date.replace(hour=22, minute=0), 'PAGO_QR', cat_map['entretenimiento'], 'COMPLETADO'))
 
-        # --- PATRÓN 6: RUIDO CONTROLADO (Para mejorar robustez) ---
-        if random.random() < 0.2: # 20% de probabilidad de un gasto "extra" pequeño
-            monto_extra = round(random.uniform(2.0, 5.0), 2)
-            registros.append((cuenta_id, monto_extra, 'EGRESO', 'Gasto Hormiga', 
-                            current_date.replace(hour=15, minute=0), 'PAGO_QR', cat_map['otros'], 'COMPLETADO'))
+        # --- PATRÓN 6: RUIDO ESPORÁDICO ---
+        if random.random() < 0.2:
+            monto_extra = round(random.uniform(5.0, 15.0), 2)
+            registros.append((cuenta_id, monto_extra, 'EGRESO', 'Gasto Hormiga (Dulces/Gaseosa)', 
+                            current_date.replace(hour=15, minute=0), 'EFECTIVO', cat_map['otros'], 'COMPLETADO'))
 
         current_date += timedelta(days=1)
         if len(registros) >= 4000: break

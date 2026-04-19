@@ -51,6 +51,8 @@
                     android:background="@color/bg_light"
                     tools:listitem="@layout/item_cuenta" />
 
+                <include layout="@layout/layout_weekly_expense_card" />
+
                 <!-- Card de Predicción IA -->
                 <include layout="@layout/layout_prediccion_card" />
 
