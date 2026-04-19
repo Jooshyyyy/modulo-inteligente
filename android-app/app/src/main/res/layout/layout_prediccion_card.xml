@@ -27,18 +27,7 @@
                 android:textColor="#333333"
                 android:textSize="18sp"
                 android:textStyle="bold"/>
-            
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="⚡ IA"
-                android:textSize="12sp"
-                android:paddingStart="8dp"
-                android:paddingEnd="8dp"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp"
-                android:background="#EAEAEA"
-                android:textColor="#333" />
+
         </LinearLayout>
 
         <TextView

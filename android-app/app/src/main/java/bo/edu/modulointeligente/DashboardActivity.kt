@@ -1,27 +1,42 @@
 package bo.edu.modulointeligente
 
 import android.os.Bundle
-import android.widget.Toast
-import android.widget.TextView
+import android.graphics.Color
+import android.view.LayoutInflater
+import android.view.View
 import android.widget.Button
 import android.widget.LinearLayout
-import android.view.LayoutInflater
+import android.widget.TextView
+import android.widget.Toast
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.navigation.NavigationView
 import kotlinx.coroutines.launch
+import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
+import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
 import java.util.Locale
+import kotlin.math.roundToInt
 
 class DashboardActivity : BaseActivity() {
-    
+
     private lateinit var adapter: CuentaAdapter
     private val calendar = Calendar.getInstance()
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
     private val displayFormat = SimpleDateFormat("EEEE, d 'de' MMMM", Locale("es", "ES"))
+    private val rangeFormat = SimpleDateFormat("dd/MM", Locale("es", "ES"))
+    private val dayLabelFormat = SimpleDateFormat("EEE dd/MM", Locale("es", "ES"))
+    private val decimalFormat = DecimalFormat("#,##0.00", DecimalFormatSymbols(Locale("es", "ES")))
+    private val apiDateFormats = listOf(
+        "yyyy-MM-dd",
+        "yyyy-MM-dd'T'HH:mm:ss.SSSX",
+        "yyyy-MM-dd'T'HH:mm:ssX"
+    ).map { SimpleDateFormat(it, Locale.getDefault()) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,6 +59,7 @@ class DashboardActivity : BaseActivity() {
         findViewById<com.google.android.material.floatingactionbutton.FloatingActionButton>(R.id.fabRefresh).setOnClickListener {
             cargarCuentas()
             cargarPrediccion()
+            cargarResumenSemanal()
             Toast.makeText(this, "Actualizando...", Toast.LENGTH_SHORT).show()
         }
 
@@ -55,11 +71,13 @@ class DashboardActivity : BaseActivity() {
 
         cargarCuentas()
         cargarPrediccion()
+        cargarResumenSemanal()
     }
 
     override fun onResume() {
         super.onResume()
         cargarCuentas()
+        cargarResumenSemanal()
         // Opcional: cargarPrediccion() tmb se podria para refrescar, pero dejemos que no cambie la fecha simulada
     }
 
@@ -118,6 +136,123 @@ class DashboardActivity : BaseActivity() {
                 // Silencioso para caso de error de api
                 e.printStackTrace()
             }
+        }
+    }
+
+    private fun cargarResumenSemanal() {
+        val subtitle = findViewById<TextView>(R.id.tvWeeklyExpenseSubtitle)
+        val totalText = findViewById<TextView>(R.id.tvWeeklyExpenseTotal)
+        val emptyText = findViewById<TextView>(R.id.tvWeeklyExpenseEmpty)
+        val categoryList = findViewById<LinearLayout>(R.id.llWeeklyCategoryList)
+        val chartBar = findViewById<LinearLayout>(R.id.llWeeklyChartBar)
+        val dayList = findViewById<LinearLayout>(R.id.llWeeklyDayList)
+
+        val startDate = Calendar.getInstance().apply {
+            set(Calendar.DAY_OF_WEEK, firstDayOfWeek)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val endDate = (startDate.clone() as Calendar).apply { add(Calendar.DAY_OF_YEAR, 6) }
+        val fechaInicio = dateFormat.format(startDate.time)
+        subtitle.text = "Semana ${rangeFormat.format(startDate.time)} - ${rangeFormat.format(endDate.time)}"
+
+        lifecycleScope.launch {
+            try {
+                val response = RetrofitClient.instance.getPrediccionSemanal(fechaInicio)
+                if (!response.isSuccessful || response.body() == null) {
+                    totalText.text = "Bs. 0.00"
+                    categoryList.removeAllViews()
+                    chartBar.removeAllViews()
+                    dayList.removeAllViews()
+                    emptyText.visibility = View.VISIBLE
+                    return@launch
+                }
+
+                val predSemanal = response.body()!!
+                val categorias = predSemanal.categorias
+                    .filter { it.monto > 0.0 }
+                    .sortedByDescending { it.monto }
+
+                if (categorias.isEmpty()) {
+                    totalText.text = "Bs. 0.00"
+                    categoryList.removeAllViews()
+                    chartBar.removeAllViews()
+                    dayList.removeAllViews()
+                    emptyText.visibility = View.VISIBLE
+                    return@launch
+                }
+
+                val totalSemana = categorias.sumOf { it.monto }
+                totalText.text = "Bs. ${decimalFormat.format(totalSemana)}"
+                emptyText.visibility = View.GONE
+                categoryList.removeAllViews()
+                chartBar.removeAllViews()
+                dayList.removeAllViews()
+
+                categorias.forEach { categoria ->
+                    val percent = if (totalSemana > 0.0) ((categoria.monto / totalSemana) * 100).roundToInt() else 0
+                    val itemView = LayoutInflater.from(this@DashboardActivity)
+                        .inflate(R.layout.item_weekly_category, categoryList, false)
+
+                    itemView.findViewById<TextView>(R.id.tvCategoryName).text = categoria.categoria
+                    itemView.findViewById<TextView>(R.id.tvCategoryAmount).text = "Bs. ${decimalFormat.format(categoria.monto)}"
+                    itemView.findViewById<TextView>(R.id.tvCategoryPercent).text = "$percent%"
+                    itemView.findViewById<View>(R.id.viewCategoryColor).setBackgroundColor(parseCategoryColor(categoria.colorHex))
+
+                    categoryList.addView(itemView)
+
+                    val segment = View(this@DashboardActivity)
+                    val safeWeight = if (percent <= 0) 0.5f else percent.toFloat()
+                    segment.layoutParams = LinearLayout.LayoutParams(
+                        0,
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        safeWeight
+                    )
+                    segment.setBackgroundColor(parseCategoryColor(categoria.colorHex))
+                    chartBar.addView(segment)
+                }
+
+                predSemanal.dias.forEach { dia ->
+                    val row = LayoutInflater.from(this@DashboardActivity)
+                        .inflate(R.layout.item_prediction_day, dayList, false)
+                    row.findViewById<TextView>(R.id.tvDayLabel).text = formatDayLabel(dia.fecha)
+                    row.findViewById<TextView>(R.id.tvDayCategory).text = dia.categoria
+                    row.findViewById<TextView>(R.id.tvDayAmount).text = "Bs. ${decimalFormat.format(dia.monto)}"
+                    row.findViewById<View>(R.id.viewDayColor).setBackgroundColor(parseCategoryColor(dia.colorHex))
+                    dayList.addView(row)
+                }
+            } catch (e: Exception) {
+                totalText.text = "Bs. 0.00"
+                categoryList.removeAllViews()
+                chartBar.removeAllViews()
+                dayList.removeAllViews()
+                emptyText.visibility = View.VISIBLE
+            }
+        }
+    }
+
+    private fun formatDayLabel(rawDate: String): String {
+        val date = parseApiDate(rawDate) ?: return rawDate
+        return dayLabelFormat.format(date).replaceFirstChar { it.uppercase() }
+    }
+
+    private fun parseApiDate(rawDate: String): Date? {
+        for (format in apiDateFormats) {
+            try {
+                return format.parse(rawDate)
+            } catch (_: ParseException) {
+            }
+        }
+        return null
+    }
+
+    private fun parseCategoryColor(hex: String?): Int {
+        return try {
+            Color.parseColor(hex ?: "#9E9E9E")
+        } catch (_: IllegalArgumentException) {
+            Color.parseColor("#9E9E9E")
         }
     }
 }

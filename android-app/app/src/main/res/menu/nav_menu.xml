@@ -13,5 +13,9 @@
             android:id="@+id/nav_transferencia"
             android:icon="@drawable/ic_transfer"
             android:title="Transferencia" />
+        <item
+            android:id="@+id/nav_ia_prediccion"
+            android:icon="@drawable/ic_ai_prediction"
+            android:title="IA de predicción" />
     </group>
 </menu>

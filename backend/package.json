@@ -5,6 +5,7 @@
     "dotenv": "^17.2.4",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
+    "node-cron": "^4.2.1",
     "pg": "^8.18.0"
   },
   "name": "backend",
@@ -16,7 +17,11 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon src/server.js"
+    "dev": "nodemon src/server.js",
+    "ia:train": "python ia/prediccion/entrenamiento.py",
+    "ia:predict:week": "python ia/prediccion/main.py --usuario-id 10 --dias 7",
+    "ia:predict:month": "python ia/prediccion/main.py --usuario-id 10",
+    "ia:validate:today": "node -e \"require('./src/jobs/prediccion.scheduler').validarMostrarDashboard()\""
   },
   "keywords": [],
   "author": "",
