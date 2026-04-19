@@ -53,7 +53,6 @@ const obtenerPrediccionSemana = async (req, res) => {
             return res.status(404).json({ mensaje: "No hay predicción disponible para esta semana." });
         }
 
-<<<<<<< HEAD
         let totalSuma = 0;
         let totalConfianza = 0;
 
@@ -105,8 +104,6 @@ const obtenerPrediccionSemana = async (req, res) => {
     }
 }
 
-module.exports = { obtenerPrediccionDia, obtenerPrediccionSemana };
-=======
 const obtenerPrediccionSemanal = async (req, res) => {
     try {
         const usuarioId = req.usuario.id;
@@ -186,5 +183,4 @@ const obtenerPrediccionMensual = async (req, res) => {
     }
 };
 
-module.exports = { obtenerPrediccionDia, obtenerPrediccionSemanal, obtenerPrediccionMensual };
->>>>>>> 799f6e6ae5ec037d2af0f8d4ba89853c260b5b0b
+module.exports = { obtenerPrediccionDia, obtenerPrediccionSemana, obtenerPrediccionSemanal, obtenerPrediccionMensual };

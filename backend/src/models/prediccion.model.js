@@ -23,8 +23,6 @@ const Prediccion = {
             throw error;
         }
     },
-<<<<<<< HEAD
-    
     obtenerPorSemana: async (usuarioId) => {
         try {
             const query = `
@@ -41,7 +39,12 @@ const Prediccion = {
                 ORDER BY amount DESC
             `;
             const result = await pool.query(query, [usuarioId]);
-=======
+            return result.rows;
+        } catch (error) {
+            console.error("Error al obtener predicción semanal:", error);
+            throw error;
+        }
+    },
 
     obtenerSemanaPorCategoria: async (usuarioId, fechaInicio) => {
         try {
@@ -61,14 +64,11 @@ const Prediccion = {
                 ORDER BY monto_total DESC
             `;
             const result = await pool.query(query, [usuarioId, fechaInicio]);
->>>>>>> 799f6e6ae5ec037d2af0f8d4ba89853c260b5b0b
             return result.rows;
         } catch (error) {
             console.error("Error al obtener predicción semanal:", error);
             throw error;
         }
-<<<<<<< HEAD
-=======
     },
 
     obtenerSemanaPorDia: async (usuarioId, fechaInicio) => {
@@ -158,7 +158,6 @@ const Prediccion = {
             console.error("Error al obtener detalle mensual por día:", error);
             throw error;
         }
->>>>>>> 799f6e6ae5ec037d2af0f8d4ba89853c260b5b0b
     }
 };
 
