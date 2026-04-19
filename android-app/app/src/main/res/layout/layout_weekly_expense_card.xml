@@ -30,7 +30,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="Últimos 7 días"
+            android:text="Predicción de la semana"
             android:textColor="@color/text_secondary"
             android:textSize="13sp" />
 
@@ -45,10 +45,35 @@
             android:textStyle="bold" />
 
         <LinearLayout
+            android:id="@+id/llWeeklyChartBar"
+            android:layout_width="match_parent"
+            android:layout_height="18dp"
+            android:layout_marginTop="12dp"
+            android:background="@color/divider"
+            android:orientation="horizontal" />
+
+        <LinearLayout
             android:id="@+id/llWeeklyCategoryList"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
+            android:orientation="vertical" />
+
+        <TextView
+            android:id="@+id/tvWeeklyDaysTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Detalle por día"
+            android:textColor="@color/text_primary"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:id="@+id/llWeeklyDayList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
             android:orientation="vertical" />
 
         <TextView

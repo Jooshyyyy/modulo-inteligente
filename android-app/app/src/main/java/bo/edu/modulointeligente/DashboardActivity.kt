@@ -1,11 +1,11 @@
 package bo.edu.modulointeligente
 
 import android.os.Bundle
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.Button
 import android.widget.LinearLayout
-import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.drawerlayout.widget.DrawerLayout
@@ -29,15 +29,14 @@ class DashboardActivity : BaseActivity() {
     private val calendar = Calendar.getInstance()
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
     private val displayFormat = SimpleDateFormat("EEEE, d 'de' MMMM", Locale("es", "ES"))
-    private val rangeFormat = SimpleDateFormat("d MMM", Locale("es", "ES"))
+    private val rangeFormat = SimpleDateFormat("dd/MM", Locale("es", "ES"))
+    private val dayLabelFormat = SimpleDateFormat("EEE dd/MM", Locale("es", "ES"))
     private val decimalFormat = DecimalFormat("#,##0.00", DecimalFormatSymbols(Locale("es", "ES")))
-
     private val apiDateFormats = listOf(
+        "yyyy-MM-dd",
         "yyyy-MM-dd'T'HH:mm:ss.SSSX",
-        "yyyy-MM-dd'T'HH:mm:ssX",
-        "yyyy-MM-dd HH:mm:ss",
-        "yyyy-MM-dd"
-    ).map { pattern -> SimpleDateFormat(pattern, Locale.getDefault()) }
+        "yyyy-MM-dd'T'HH:mm:ssX"
+    ).map { SimpleDateFormat(it, Locale.getDefault()) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -145,123 +144,115 @@ class DashboardActivity : BaseActivity() {
         val totalText = findViewById<TextView>(R.id.tvWeeklyExpenseTotal)
         val emptyText = findViewById<TextView>(R.id.tvWeeklyExpenseEmpty)
         val categoryList = findViewById<LinearLayout>(R.id.llWeeklyCategoryList)
+        val chartBar = findViewById<LinearLayout>(R.id.llWeeklyChartBar)
+        val dayList = findViewById<LinearLayout>(R.id.llWeeklyDayList)
 
-        val endDate = Calendar.getInstance()
-        val startDate = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -6) }
-        subtitle.text = "${rangeFormat.format(startDate.time)} - ${rangeFormat.format(endDate.time)}"
+        val startDate = Calendar.getInstance().apply {
+            set(Calendar.DAY_OF_WEEK, firstDayOfWeek)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val endDate = (startDate.clone() as Calendar).apply { add(Calendar.DAY_OF_YEAR, 6) }
+        val fechaInicio = dateFormat.format(startDate.time)
+        subtitle.text = "Semana ${rangeFormat.format(startDate.time)} - ${rangeFormat.format(endDate.time)}"
 
         lifecycleScope.launch {
             try {
-                val cuentasResponse = RetrofitClient.instance.getCuentas()
-                if (!cuentasResponse.isSuccessful) {
-                    return@launch
-                }
-
-                val movimientosSemana = mutableListOf<MovimientoResponse>()
-                val allCuentas = cuentasResponse.body().orEmpty()
-                allCuentas.forEach { cuenta ->
-                    val movResponse = RetrofitClient.instance.getMovimientos(cuenta.id)
-                    if (movResponse.isSuccessful) {
-                        movimientosSemana.addAll(
-                            movResponse.body().orEmpty().filter { movimiento ->
-                                movimiento.tipo.equals("EGRESO", ignoreCase = true) &&
-                                    isWithinLastWeek(movimiento.fecha)
-                            }
-                        )
-                    }
-                }
-
-                if (movimientosSemana.isEmpty()) {
+                val response = RetrofitClient.instance.getPrediccionSemanal(fechaInicio)
+                if (!response.isSuccessful || response.body() == null) {
                     totalText.text = "Bs. 0.00"
                     categoryList.removeAllViews()
+                    chartBar.removeAllViews()
+                    dayList.removeAllViews()
                     emptyText.visibility = View.VISIBLE
                     return@launch
                 }
 
-                val totalsByCategory = movimientosSemana
-                    .groupBy { resolveCategoryName(it) }
-                    .mapValues { (_, movimientos) -> movimientos.sumOf { it.monto } }
-                    .toList()
-                    .sortedByDescending { it.second }
+                val predSemanal = response.body()!!
+                val categorias = predSemanal.categorias
+                    .filter { it.monto > 0.0 }
+                    .sortedByDescending { it.monto }
 
-                val totalSemana = totalsByCategory.sumOf { it.second }
+                if (categorias.isEmpty()) {
+                    totalText.text = "Bs. 0.00"
+                    categoryList.removeAllViews()
+                    chartBar.removeAllViews()
+                    dayList.removeAllViews()
+                    emptyText.visibility = View.VISIBLE
+                    return@launch
+                }
+
+                val totalSemana = categorias.sumOf { it.monto }
                 totalText.text = "Bs. ${decimalFormat.format(totalSemana)}"
                 emptyText.visibility = View.GONE
                 categoryList.removeAllViews()
+                chartBar.removeAllViews()
+                dayList.removeAllViews()
 
-                totalsByCategory.forEach { (categoria, monto) ->
-                    val percent = if (totalSemana > 0.0) ((monto / totalSemana) * 100).roundToInt() else 0
+                categorias.forEach { categoria ->
+                    val percent = if (totalSemana > 0.0) ((categoria.monto / totalSemana) * 100).roundToInt() else 0
                     val itemView = LayoutInflater.from(this@DashboardActivity)
                         .inflate(R.layout.item_weekly_category, categoryList, false)
 
-                    itemView.findViewById<TextView>(R.id.tvCategoryName).text = categoria
-                    itemView.findViewById<TextView>(R.id.tvCategoryAmount).text = "Bs. ${decimalFormat.format(monto)}"
+                    itemView.findViewById<TextView>(R.id.tvCategoryName).text = categoria.categoria
+                    itemView.findViewById<TextView>(R.id.tvCategoryAmount).text = "Bs. ${decimalFormat.format(categoria.monto)}"
                     itemView.findViewById<TextView>(R.id.tvCategoryPercent).text = "$percent%"
-                    itemView.findViewById<ProgressBar>(R.id.pbCategoryShare).progress = percent
+                    itemView.findViewById<View>(R.id.viewCategoryColor).setBackgroundColor(parseCategoryColor(categoria.colorHex))
 
                     categoryList.addView(itemView)
+
+                    val segment = View(this@DashboardActivity)
+                    val safeWeight = if (percent <= 0) 0.5f else percent.toFloat()
+                    segment.layoutParams = LinearLayout.LayoutParams(
+                        0,
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        safeWeight
+                    )
+                    segment.setBackgroundColor(parseCategoryColor(categoria.colorHex))
+                    chartBar.addView(segment)
+                }
+
+                predSemanal.dias.forEach { dia ->
+                    val row = LayoutInflater.from(this@DashboardActivity)
+                        .inflate(R.layout.item_prediction_day, dayList, false)
+                    row.findViewById<TextView>(R.id.tvDayLabel).text = formatDayLabel(dia.fecha)
+                    row.findViewById<TextView>(R.id.tvDayCategory).text = dia.categoria
+                    row.findViewById<TextView>(R.id.tvDayAmount).text = "Bs. ${decimalFormat.format(dia.monto)}"
+                    row.findViewById<View>(R.id.viewDayColor).setBackgroundColor(parseCategoryColor(dia.colorHex))
+                    dayList.addView(row)
                 }
             } catch (e: Exception) {
-                // Si la API falla, mantenemos el dashboard estable
                 totalText.text = "Bs. 0.00"
                 categoryList.removeAllViews()
+                chartBar.removeAllViews()
+                dayList.removeAllViews()
                 emptyText.visibility = View.VISIBLE
             }
         }
     }
 
-    private fun isWithinLastWeek(rawDate: String): Boolean {
-        val parsedDate = parseMovementDate(rawDate) ?: return false
-        val start = Calendar.getInstance().apply {
-            add(Calendar.DAY_OF_YEAR, -6)
-            set(Calendar.HOUR_OF_DAY, 0)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-        }.time
-        return !parsedDate.before(start)
+    private fun formatDayLabel(rawDate: String): String {
+        val date = parseApiDate(rawDate) ?: return rawDate
+        return dayLabelFormat.format(date).replaceFirstChar { it.uppercase() }
     }
 
-    private fun parseMovementDate(rawDate: String): Date? {
-        for (formatter in apiDateFormats) {
+    private fun parseApiDate(rawDate: String): Date? {
+        for (format in apiDateFormats) {
             try {
-                return formatter.parse(rawDate)
+                return format.parse(rawDate)
             } catch (_: ParseException) {
-                // Intentamos el siguiente formato soportado por backend
             }
         }
         return null
     }
 
-    private fun resolveCategoryName(movimiento: MovimientoResponse): String {
-        val fromApi = movimiento.categoriaNombre?.trim()
-        if (!fromApi.isNullOrEmpty()) return fromApi
-
-        return when (movimiento.categoriaId) {
-            1 -> "Alimentación"
-            2 -> "Transporte"
-            3 -> "Vivienda"
-            4 -> "Entretenimiento"
-            5 -> "Salud"
-            6 -> "Educación"
-            7 -> "Compras"
-            8 -> "Servicios"
-            9 -> "Otros"
-            else -> inferCategoryByConcept(movimiento.concepto)
-        }
-    }
-
-    private fun inferCategoryByConcept(concepto: String): String {
-        val value = concepto.lowercase(Locale.getDefault())
-        return when {
-            listOf("uber", "taxi", "bus", "pasaje", "trufi", "transporte", "combustible").any { it in value } -> "Transporte"
-            listOf("cafe", "almuerzo", "desayuno", "cena", "restaurant", "comida", "mercado").any { it in value } -> "Alimentación"
-            listOf("farmacia", "clinica", "medico", "salud").any { it in value } -> "Salud"
-            listOf("colegio", "universidad", "curso", "educacion").any { it in value } -> "Educación"
-            listOf("luz", "agua", "internet", "alquiler", "servicio").any { it in value } -> "Servicios"
-            listOf("tienda", "compra", "super", "ropa").any { it in value } -> "Compras"
-            listOf("cine", "netflix", "spotify", "juego", "fiesta").any { it in value } -> "Entretenimiento"
-            else -> "Otros"
+    private fun parseCategoryColor(hex: String?): Int {
+        return try {
+            Color.parseColor(hex ?: "#9E9E9E")
+        } catch (_: IllegalArgumentException) {
+            Color.parseColor("#9E9E9E")
         }
     }
 }

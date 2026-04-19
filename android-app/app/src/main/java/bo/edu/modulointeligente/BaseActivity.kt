@@ -50,6 +50,11 @@ open class BaseActivity : AppCompatActivity() {
                         startActivity(Intent(this, TransferenciaActivity::class.java))
                     }
                 }
+                R.id.nav_ia_prediccion -> {
+                    if (this !is IAPrediccionActivity) {
+                        startActivity(Intent(this, IAPrediccionActivity::class.java))
+                    }
+                }
             }
             drawerLayout.closeDrawer(GravityCompat.START)
             true

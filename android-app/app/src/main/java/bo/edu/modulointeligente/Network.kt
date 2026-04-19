@@ -49,10 +49,40 @@ interface ApiService {
 
     @GET("api/predicciones/dia")
     suspend fun getPrediccionDia(@retrofit2.http.Query("fecha") fecha: String): Response<PrediccionResponse>
+
+    @GET("api/predicciones/semanal")
+    suspend fun getPrediccionSemanal(
+        @retrofit2.http.Query("fecha_inicio") fechaInicio: String
+    ): Response<PrediccionSemanalResponse>
+
+    @GET("api/predicciones/mensual")
+    suspend fun getPrediccionMensual(
+        @retrofit2.http.Query("mes") mes: String
+    ): Response<PrediccionMensualResponse>
+
+    @GET("api/metas/activa")
+    suspend fun getMetaActiva(): Response<MetaActivaResponse>
+
+    @GET("api/metas/ia-coach")
+    suspend fun getIaCoach(
+        @retrofit2.http.Query("mes") mes: String
+    ): Response<IaCoachResponse>
+
+    @POST("api/metas")
+    suspend fun crearMeta(@Body request: CrearMetaRequest): Response<CrearMetaApiResponse>
+
+    @retrofit2.http.PUT("api/metas/{id}/progreso")
+    suspend fun actualizarProgresoMeta(
+        @Path("id") id: Int,
+        @Body request: ActualizarMetaProgresoRequest
+    ): Response<CrearMetaApiResponse>
+
+    @retrofit2.http.PUT("api/metas/{id}/pausar")
+    suspend fun pausarMeta(@Path("id") id: Int): Response<Map<String, String>>
 }
 
 object RetrofitClient {
-    private const val BASE_URL = "http://192.168.26.129:3000/"
+    private const val BASE_URL = "http://192.168.0.11:3000/"
     
     var authToken: String? = null
 
