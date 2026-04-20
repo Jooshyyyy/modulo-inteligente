@@ -136,19 +136,19 @@ data class PrediccionResponse(
 )
 
 data class PrediccionSemanalCategoria(
-    val categoriaId: Int,
-    val categoria: String,
-    val colorHex: String,
-    val monto: Double,
-    val confianza: Double
+    val categoriaId: Int = 0,
+    val categoria: String = "",
+    val colorHex: String = "#9E9E9E",
+    val monto: Double = 0.0,
+    val confianza: Double = 0.0
 )
 
 data class PrediccionDetalleDia(
-    val fecha: String,
-    val categoria: String,
-    val colorHex: String,
-    val monto: Double,
-    val confianza: Double
+    val fecha: String = "",
+    val categoria: String = "",
+    val colorHex: String = "#9E9E9E",
+    val monto: Double = 0.0,
+    val confianza: Double = 0.0
 )
 
 data class PrediccionSemanalResponse(
@@ -159,10 +159,10 @@ data class PrediccionSemanalResponse(
 )
 
 data class PrediccionMensualResponse(
-    val mes: String,
-    val total: Double,
-    val categorias: List<PrediccionSemanalCategoria>,
-    val dias: List<PrediccionDetalleDia>
+    val mes: String = "",
+    val total: Double = 0.0,
+    val categorias: List<PrediccionSemanalCategoria> = emptyList(),
+    val dias: List<PrediccionDetalleDia> = emptyList()
 )
 
 data class MetaFinanciera(
@@ -170,12 +170,12 @@ data class MetaFinanciera(
     val titulo: String,
     val descripcion: String? = null,
     val plantilla: String? = null,
-    val montoObjetivo: Double,
-    val montoAcumulado: Double,
-    val montoRestante: Double,
-    val porcentajeCompletado: Double,
-    val fechaLimite: String,
-    val estado: String
+    val montoObjetivo: Double = 0.0,
+    val montoAcumulado: Double = 0.0,
+    val montoRestante: Double = 0.0,
+    val porcentajeCompletado: Double = 0.0,
+    val fechaLimite: String = "",
+    val estado: String = ""
 )
 
 data class MetaActivaResponse(

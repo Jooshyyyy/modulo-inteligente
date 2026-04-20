@@ -1,6 +1,7 @@
 const pool = require('../config/database');
 
 const Prediccion = {
+    /** Varias filas por día (reparto del modelo), ordenadas por monto descendente. */
     obtenerPorDia: async (usuarioId, fecha) => {
         try {
             const query = `
@@ -8,18 +9,40 @@ const Prediccion = {
                     p.monto_proyectado,
                     p.score_confianza,
                     p.fecha_prediccion,
-                    c.nombre as categoria_nombre
+                    COALESCE(c.nombre, 'Otros') AS categoria_nombre
                 FROM predicciones_gastos p
                 LEFT JOIN categorias c ON p.categoria_id = c.id
                 WHERE p.usuario_id = $1
-                  AND p.fecha_prediccion = $2
-                ORDER BY p.score_confianza DESC
-                LIMIT 1
+                  AND p.fecha_prediccion::date = $2::date
+                ORDER BY p.monto_proyectado DESC, p.score_confianza DESC
+                LIMIT 12
             `;
             const result = await pool.query(query, [usuarioId, fecha]);
-            return result.rows[0];
+            return result.rows;
         } catch (error) {
             console.error("Error al obtener predicción:", error);
+            throw error;
+        }
+    },
+    obtenerPorSemana: async (usuarioId) => {
+        try {
+            const query = `
+                SELECT 
+                    c.nombre as categoria,
+                    SUM(p.monto_proyectado) as amount,
+                    AVG(p.score_confianza) as confidence
+                FROM predicciones_gastos p
+                LEFT JOIN categorias c ON p.categoria_id = c.id
+                WHERE (p.usuario_id = $1 OR true)
+                  AND p.fecha_prediccion >= CURRENT_DATE 
+                  AND p.fecha_prediccion < CURRENT_DATE + INTERVAL '7 days'
+                GROUP BY c.nombre
+                ORDER BY amount DESC
+            `;
+            const result = await pool.query(query, [usuarioId]);
+            return result.rows;
+        } catch (error) {
+            console.error("Error al obtener predicción semanal:", error);
             throw error;
         }
     },
@@ -61,7 +84,7 @@ const Prediccion = {
                         p.score_confianza,
                         ROW_NUMBER() OVER (
                             PARTITION BY p.fecha_prediccion::date
-                            ORDER BY p.score_confianza DESC, p.monto_proyectado DESC
+                            ORDER BY p.monto_proyectado DESC, p.score_confianza DESC
                         ) AS rn
                     FROM predicciones_gastos p
                     LEFT JOIN categorias c ON p.categoria_id = c.id
@@ -71,8 +94,8 @@ const Prediccion = {
                 )
                 SELECT fecha_prediccion, categoria_nombre, color_hex, monto_proyectado, score_confianza
                 FROM ranked
-                WHERE rn = 1
-                ORDER BY fecha_prediccion ASC
+                WHERE rn <= 8
+                ORDER BY fecha_prediccion ASC, monto_proyectado DESC
             `;
             const result = await pool.query(query, [usuarioId, fechaInicio]);
             return result.rows;
@@ -118,7 +141,7 @@ const Prediccion = {
                         p.score_confianza,
                         ROW_NUMBER() OVER (
                             PARTITION BY p.fecha_prediccion::date
-                            ORDER BY p.score_confianza DESC, p.monto_proyectado DESC
+                            ORDER BY p.monto_proyectado DESC, p.score_confianza DESC
                         ) AS rn
                     FROM predicciones_gastos p
                     LEFT JOIN categorias c ON p.categoria_id = c.id
@@ -127,8 +150,8 @@ const Prediccion = {
                 )
                 SELECT fecha_prediccion, categoria_nombre, color_hex, monto_proyectado, score_confianza
                 FROM ranked
-                WHERE rn = 1
-                ORDER BY fecha_prediccion ASC
+                WHERE rn <= 8
+                ORDER BY fecha_prediccion ASC, monto_proyectado DESC
             `;
             const result = await pool.query(query, [usuarioId, mes]);
             return result.rows;

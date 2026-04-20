@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="16dp"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="2dp"
-    app:cardBackgroundColor="#FFFDF2">
+    app:cardCornerRadius="24dp"
+    app:cardElevation="0dp"
+    app:cardBackgroundColor="#2A2A40"
+    app:strokeColor="#6E56FF"
+    app:strokeWidth="1dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -19,12 +22,13 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical">
+            
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Predicción de Gasto Hoy"
-                android:textColor="#333333"
+                android:textColor="#FFFFFF"
                 android:textSize="18sp"
                 android:textStyle="bold"/>
 
@@ -36,47 +40,45 @@
             android:layout_height="wrap_content"
             android:text="Cargando..."
             android:textSize="14sp"
-            android:textColor="#777777"
+            android:textColor="#B0B0C0"
             android:layout_marginTop="4dp"/>
 
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            app:cardCornerRadius="12dp"
+            app:cardCornerRadius="14dp"
             app:cardElevation="0dp"
-            app:cardBackgroundColor="#FFFFFF"
+            app:cardBackgroundColor="#1A1829"
             app:contentPadding="16dp">
             
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:gravity="center">
                 
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <TextView
+                    android:id="@+id/tvPrediccionMonto"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="bottom">
-                    <TextView
-                        android:id="@+id/tvPrediccionMonto"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Bs. --"
-                        android:textSize="28sp"
-                        android:textStyle="bold"
-                        android:textColor="#111111"/>
-                    <TextView
-                        android:id="@+id/tvPrediccionNivel"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="..."
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:textColor="#B8860B"
-                        android:layout_marginStart="8dp"
-                        android:layout_marginBottom="4dp"/>
-                </LinearLayout>
+                    android:text="Bs. --"
+                    android:textSize="36sp"
+                    android:textStyle="bold"
+                    android:textColor="#FFFFFF"/>
+                    
+                <TextView
+                    android:id="@+id/tvPrediccionNivel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="..."
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="#6E56FF"
+                    android:background="#2A2A40"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="4dp"
+                    android:layout_marginTop="8dp"/>
 
                 <TextView
                     android:id="@+id/tvPrediccionDiferencia"
@@ -84,28 +86,41 @@
                     android:layout_height="wrap_content"
                     android:text="..."
                     android:textSize="13sp"
-                    android:textColor="#4CAF50"
-                    android:layout_marginTop="12dp"/>
+                    android:textColor="#A0A0A0"
+                    android:layout_marginTop="16dp"
+                    android:gravity="center"/>
+
+                <TextView
+                    android:id="@+id/tvPrediccionSemaforo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:background="#2A2A40"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="6dp"
+                    android:text="Alerta IA: —"
+                    android:textColor="#D0D0E0"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- Probabilities List Container -->
-        <LinearLayout
-            android:id="@+id/llProbabilidadesList"
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvProbabilidadesList"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginTop="16dp">
-        </LinearLayout>
+            android:layout_marginTop="16dp"
+            android:nestedScrollingEnabled="false"
+            android:overScrollMode="never"
+            tools:listitem="@layout/item_probabilidad_ia" />
 
-        <!-- Boton Provisional para Presentacion -->
         <Button
             android:id="@+id/btnCambiarFalsaFecha"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="[Demo] Simular Día Siguiente"
             style="?android:attr/borderlessButtonStyle"
-            android:textColor="?attr/colorPrimary"
+            android:textColor="#6E56FF"
             android:layout_marginTop="16dp"/>
 
     </LinearLayout>
