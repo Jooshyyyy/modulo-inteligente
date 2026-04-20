@@ -8,7 +8,8 @@ import joblib
 import numpy as np
 from dotenv import load_dotenv
 
-# Cargar variables desde backend/.env
+from dotenv import load_dotenv
+
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "../../.env"))
 
 def train():
