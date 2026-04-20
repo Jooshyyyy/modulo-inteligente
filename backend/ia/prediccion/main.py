@@ -1,43 +1,60 @@
-import argparse
 import os
 from datetime import datetime, timedelta
-
+import psycopg
+from psycopg.rows import dict_row
 import joblib
 import numpy as np
-import pandas as pd
-import psycopg
+import random
 from dotenv import load_dotenv
 
-env_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".env"))
-load_dotenv(env_path)
+# Cargar variables desde backend/.env
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "../../.env"))
 
+db_user = os.getenv("DB_USER")
+db_password = os.getenv("DB_PASSWORD")
+db_host = os.getenv("DB_HOST")
+db_port = os.getenv("DB_PORT")
+db_name = os.getenv("DB_NAME")
 
-def cargar_modelos():
-    base_dir = os.path.dirname(__file__)
-    modelo_categoria = joblib.load(os.path.join(base_dir, "modelo_categoria.pkl"))
-    modelo_monto = joblib.load(os.path.join(base_dir, "modelo_monto.pkl"))
-    return modelo_categoria, modelo_monto
+try:
+    conn = psycopg.connect(
+        dbname=db_name,
+        user=db_user,
+        password=db_password,
+        host=db_host,
+        port=db_port,
+        row_factory=dict_row
+    )
+    print("Conexión exitosa a PostgreSQL")
+except Exception as e:
+    raise RuntimeError(f"Error de conexión: {e}")
 
+modelo_cat = joblib.load("modelo_categoria.pkl")
+modelo_monto = joblib.load("modelo_monto.pkl")
 
-def construir_features(fecha_test):
-    dia_semana = fecha_test.weekday()
-    dia_mes = fecha_test.day
-    mes = fecha_test.month
-    dia_anio = fecha_test.timetuple().tm_yday
-    hora = fecha_test.hour
+DIAS_PREDICCION = 90
+HOY = datetime.now()
 
+def generar_features(fecha, rolling7, rolling30):
+    dia_semana = fecha.weekday()
+    dia_mes = fecha.day
+    mes = fecha.month
+    dia_anio = fecha.timetuple().tm_yday
+    hora = 12
     return {
-        "dia_anio": dia_anio,
-        "dia_semana": dia_semana,
-        "dia_mes": dia_mes,
-        "mes": mes,
-        "hora": hora,
-        "dia_semana_sin": np.sin(2 * np.pi * dia_semana / 7),
-        "dia_semana_cos": np.cos(2 * np.pi * dia_semana / 7),
-        "dia_mes_sin": np.sin(2 * np.pi * dia_mes / 31),
-        "dia_mes_cos": np.cos(2 * np.pi * dia_mes / 31),
-        "hora_sin": np.sin(2 * np.pi * hora / 24),
-        "hora_cos": np.cos(2 * np.pi * hora / 24),
+        'dia_anio': dia_anio,
+        'dia_semana': dia_semana,
+        'dia_mes': dia_mes,
+        'mes': mes,
+        'hora': hora,
+        'dia_semana_sin': np.sin(2*np.pi*dia_semana/7),
+        'dia_semana_cos': np.cos(2*np.pi*dia_semana/7),
+        'dia_mes_sin': np.sin(2*np.pi*dia_mes/31),
+        'dia_mes_cos': np.cos(2*np.pi*dia_mes/31),
+        'hora_sin': np.sin(2*np.pi*hora/24),
+        'hora_cos': np.cos(2*np.pi*hora/24),
+        'monto_rolling_7': rolling7,
+        'monto_rolling_30': rolling30
     }
 
 
