@@ -3,9 +3,35 @@ const Prediccion = require('../models/prediccion.model');
 
 const round2 = (n) => Math.round(Number(n) * 100) / 100;
 
-const formatFechaLargaEs = (isoDateStr) => {
-    if (!isoDateStr) return '';
-    const s = String(isoDateStr).slice(0, 10);
+/**
+ * Normaliza un valor de fecha que puede venir como objeto Date de PostgreSQL
+ * o como string ISO, y devuelve siempre "YYYY-MM-DD"
+ */
+const normalizarFecha = (valor) => {
+    if (!valor) return '';
+    if (valor instanceof Date) {
+        // pg devuelve Date objects para columnas tipo date
+        const y = valor.getFullYear();
+        const m = String(valor.getMonth() + 1).padStart(2, '0');
+        const d = String(valor.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    }
+    const s = String(valor);
+    // Si ya es ISO (contiene 'T' o tiene formato yyyy-mm-dd)
+    if (s.includes('T')) return s.slice(0, 10);
+    if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+    // Fallback: intentar parsear
+    const dt = new Date(s);
+    if (isNaN(dt.getTime())) return '';
+    const y = dt.getFullYear();
+    const mo = String(dt.getMonth() + 1).padStart(2, '0');
+    const dy = String(dt.getDate()).padStart(2, '0');
+    return `${y}-${mo}-${dy}`;
+};
+
+const formatFechaLargaEs = (valor) => {
+    const s = normalizarFecha(valor);
+    if (!s) return 'fecha desconocida';
     const [y, m, d] = s.split('-').map((x) => parseInt(x, 10));
     const date = new Date(y, m - 1, d);
     return date.toLocaleDateString('es-BO', {
@@ -16,7 +42,8 @@ const formatFechaLargaEs = (isoDateStr) => {
 };
 
 const diasHasta = (fechaLimiteStr) => {
-    const s = String(fechaLimiteStr).slice(0, 10);
+    const s = normalizarFecha(fechaLimiteStr);
+    if (!s) return 1;
     const [y, m, d] = s.split('-').map((x) => parseInt(x, 10));
     const lim = new Date(y, m - 1, d);
     const hoy = new Date();
@@ -24,6 +51,25 @@ const diasHasta = (fechaLimiteStr) => {
     lim.setHours(0, 0, 0, 0);
     const ms = lim.getTime() - hoy.getTime();
     return Math.max(1, Math.ceil(ms / 86400000));
+};
+
+/** Agrupa varias predicciones del mismo día (reparto por categoría) en un total y rubro principal. */
+const agregarPrediccionesPorDia = (detalleDias) => {
+    const map = new Map();
+    for (const r of detalleDias) {
+        const fecha = normalizarFecha(r.fecha_prediccion);
+        if (!fecha) continue;
+        if (!map.has(fecha)) {
+            map.set(fecha, { total: 0, topRow: r });
+        }
+        const ent = map.get(fecha);
+        const m = Number(r.monto_proyectado || 0);
+        ent.total = round2(ent.total + m);
+        if (m > Number(ent.topRow.monto_proyectado || 0)) {
+            ent.topRow = r;
+        }
+    }
+    return map;
 };
 
 const mapMeta = (row) => {
@@ -41,25 +87,26 @@ const mapMeta = (row) => {
         montoAcumulado: round2(acum),
         montoRestante: restante,
         porcentajeCompletado: pct,
-        fechaLimite: String(row.fecha_limite).slice(0, 10),
+        fechaLimite: normalizarFecha(row.fecha_limite) || 'sin fecha',
         estado: row.estado
     };
 };
 
 const construirSugerencias = (detalleDias, resumenCats, montoRestanteMeta) => {
     const sugerencias = [];
-    const diasOrden = [...detalleDias].sort(
-        (a, b) => Number(b.monto_proyectado || 0) - Number(a.monto_proyectado || 0)
-    );
+    const porDia = agregarPrediccionesPorDia(detalleDias);
+    const diasOrden = [...porDia.entries()]
+        .map(([fecha, ent]) => ({
+            fecha_prediccion: fecha,
+            categoria_nombre: ent.topRow.categoria_nombre,
+            monto_proyectado: ent.total
+        }))
+        .sort((a, b) => Number(b.monto_proyectado || 0) - Number(a.monto_proyectado || 0));
 
-    const vistos = new Set();
     let prioridad = 1;
-    for (const row of diasOrden) {
-        const fecha = String(row.fecha_prediccion).slice(0, 10);
-        if (vistos.has(fecha)) continue;
-        vistos.add(fecha);
-        if (vistos.size > 6) break;
-
+    for (const row of diasOrden.slice(0, 6)) {
+        const fecha = normalizarFecha(row.fecha_prediccion);
+        if (!fecha) continue;
         const monto = Number(row.monto_proyectado || 0);
         if (monto < 5) continue;
 
@@ -74,7 +121,7 @@ const construirSugerencias = (detalleDias, resumenCats, montoRestanteMeta) => {
         sugerencias.push({
             tipo: 'DIA',
             titulo: 'Recorte en día pico proyectado',
-            mensaje: `Si el ${etiquetaFecha} reduces un 20% el gasto en «${row.categoria_nombre}» (proyectado Bs. ${round2(
+            mensaje: `Si el ${etiquetaFecha} reduces un 20% el gasto total proyectado (rubro principal «${row.categoria_nombre}», día Bs. ${round2(
                 monto
             )}), ahorrarías Bs. ${ahorro} y estarías un ${acercamiento}% más cerca de tu meta.`,
             categoria: row.categoria_nombre,
@@ -205,9 +252,11 @@ const obtenerIaCoach = async (req, res) => {
             Prediccion.obtenerMesPorDia(usuarioId, mes)
         ]);
 
+        const porDiaMap = agregarPrediccionesPorDia(detalleDias);
         const gastoProyectadoMes = round2(
-            detalleDias.reduce((s, r) => s + Number(r.monto_proyectado || 0), 0)
+            [...porDiaMap.values()].reduce((s, ent) => s + ent.total, 0)
         );
+        const diasConPrediccion = porDiaMap.size;
 
         if (!metaRow) {
             return res.json({
@@ -215,7 +264,7 @@ const obtenerIaCoach = async (req, res) => {
                 meta: null,
                 mes,
                 gastoProyectadoMes,
-                diasConPrediccion: detalleDias.length,
+                diasConPrediccion,
                 narrativa:
                     'Aún no tienes una meta activa. Cuando la definas, el coach cruza tus gastos proyectados con tu objetivo y te dirá qué día o categoría conviene recortar para acercarte con porcentajes concretos.',
                 indicadores: [],
@@ -228,20 +277,29 @@ const obtenerIaCoach = async (req, res) => {
         const diasRest = diasHasta(meta.fechaLimite);
         const ritmoDiario = montoRestante > 0 ? round2(montoRestante / diasRest) : 0;
 
-        const topDia = detalleDias.reduce(
-            (best, r) => {
-                const m = Number(r.monto_proyectado || 0);
-                return m > best.m ? { m, r } : best;
-            },
-            { m: 0, r: null }
-        );
+        let topDia = { m: 0, r: null };
+        for (const [fecha, ent] of porDiaMap) {
+            if (ent.total > topDia.m) {
+                topDia = {
+                    m: ent.total,
+                    r: {
+                        fecha_prediccion: fecha,
+                        categoria_nombre: ent.topRow.categoria_nombre
+                    }
+                };
+            }
+        }
 
-        let narrativa = `Tu meta «${meta.titulo}» va al ${meta.porcentajeCompletado}% — faltan Bs. ${montoRestante} antes del ${meta.fechaLimite}. `;
-        if (detalleDias.length === 0) {
+        const pctDisplay = isNaN(meta.porcentajeCompletado) ? '0' : String(round2(meta.porcentajeCompletado));
+        const montoRestanteDisplay = isNaN(montoRestante) ? '0.00' : String(round2(montoRestante));
+        const fechaLimiteDisplay = meta.fechaLimite ? String(meta.fechaLimite).slice(0, 10) : 'sin fecha';
+        let narrativa = `Tu meta «${meta.titulo}» va al ${pctDisplay}% — faltan Bs. ${montoRestanteDisplay} antes del ${fechaLimiteDisplay}. `;
+        if (diasConPrediccion === 0) {
             narrativa +=
                 'No hay predicciones guardadas para este mes; ejecuta el generador de predicciones para ver acciones personalizadas.';
         } else {
-            narrativa += `El modelo proyecta unos Bs. ${gastoProyectadoMes} de gasto en ${mes}. `;
+            const gpDisplay = isNaN(gastoProyectadoMes) ? '0.00' : String(gastoProyectadoMes);
+            narrativa += `El modelo proyecta unos Bs. ${gpDisplay} de gasto en ${mes}. `;
             if (topDia.r) {
                 narrativa += `El pico más alto aparece el ${formatFechaLargaEs(
                     String(topDia.r.fecha_prediccion).slice(0, 10)
@@ -249,23 +307,25 @@ const obtenerIaCoach = async (req, res) => {
             }
         }
 
+        const ritmoDiarioDisplay = isNaN(ritmoDiario) ? '0.00' : String(ritmoDiario);
+        const gpDisplay2 = isNaN(gastoProyectadoMes) ? '0.00' : String(gastoProyectadoMes);
         const indicadores = [
             {
                 clave: 'ritmo_diario',
                 etiqueta: 'Ritmo diario hacia la meta',
-                valor: `Bs. ${ritmoDiario}`,
+                valor: `Bs. ${ritmoDiarioDisplay}`,
                 detalle: `Con ${diasRest} días hasta tu fecha límite`
             },
             {
                 clave: 'gasto_proyectado_mes',
                 etiqueta: 'Gasto proyectado (mes)',
-                valor: `Bs. ${gastoProyectadoMes}`,
+                valor: `Bs. ${gpDisplay2}`,
                 detalle: 'Suma de predicciones diarias del modelo'
             }
         ];
 
         const sugerencias =
-            detalleDias.length > 0
+            diasConPrediccion > 0
                 ? construirSugerencias(detalleDias, resumenCats, montoRestante)
                 : [];
 
@@ -274,7 +334,7 @@ const obtenerIaCoach = async (req, res) => {
             meta,
             mes,
             gastoProyectadoMes,
-            diasConPrediccion: detalleDias.length,
+            diasConPrediccion,
             narrativa: narrativa.trim(),
             indicadores,
             sugerencias

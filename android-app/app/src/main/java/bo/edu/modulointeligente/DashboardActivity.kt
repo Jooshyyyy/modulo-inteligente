@@ -2,7 +2,6 @@ package bo.edu.modulointeligente
 
 import android.os.Bundle
 import android.graphics.Color
-import android.view.LayoutInflater
 import android.view.View
 import android.widget.Button
 import android.widget.LinearLayout
@@ -12,7 +11,11 @@ import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.navigation.NavigationView
+import bo.edu.modulointeligente.ui.prediccion.MonthlyCategoryAdapter
+import bo.edu.modulointeligente.ui.prediccion.MonthlyDayAdapter
+import bo.edu.modulointeligente.ui.prediccion.ProbabilidadAdapter
 import kotlinx.coroutines.launch
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
@@ -37,6 +40,13 @@ class DashboardActivity : BaseActivity() {
         "yyyy-MM-dd'T'HH:mm:ss.SSSX",
         "yyyy-MM-dd'T'HH:mm:ssX"
     ).map { SimpleDateFormat(it, Locale.getDefault()) }
+    private lateinit var probabilidadAdapter: ProbabilidadAdapter
+    private lateinit var weeklyCategoryAdapter: MonthlyCategoryAdapter
+    private lateinit var weeklyDayAdapter: MonthlyDayAdapter
+    private var weeklyCategoriasCache: List<PrediccionSemanalCategoria> = emptyList()
+    private var weeklyDiasCache: List<PrediccionDetalleDia> = emptyList()
+    private var weeklyTotalCache: Double = 0.0
+    private var weeklyFiltroCategoria: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,6 +65,7 @@ class DashboardActivity : BaseActivity() {
         rvCuentas.layoutManager = LinearLayoutManager(this)
         adapter = CuentaAdapter(emptyList())
         rvCuentas.adapter = adapter
+        setupPredictionAdapters()
 
         findViewById<com.google.android.material.floatingactionbutton.FloatingActionButton>(R.id.fabRefresh).setOnClickListener {
             cargarCuentas()
@@ -72,6 +83,54 @@ class DashboardActivity : BaseActivity() {
         cargarCuentas()
         cargarPrediccion()
         cargarResumenSemanal()
+    }
+
+    private fun setupPredictionAdapters() {
+        probabilidadAdapter = ProbabilidadAdapter { item ->
+            val monto = item.monto.toDoubleOrNull() ?: 0.0
+            val sugerido = (monto * 0.3).coerceAtLeast(0.0)
+            MaterialAlertDialogBuilder(this)
+                .setTitle("Consejo IA · ${item.nombre}")
+                .setMessage(
+                    "Proyección: Bs. ${decimalFormat.format(monto)}\n" +
+                        "Si reducís ese gasto en un 30%, podrías ahorrar Bs. ${decimalFormat.format(sugerido)}.\n" +
+                        "Acción sugerida: definí un tope diario para ${item.nombre.lowercase()}."
+                )
+                .setPositiveButton("Aplicar idea", null)
+                .show()
+        }
+        findViewById<RecyclerView>(R.id.rvProbabilidadesList).apply {
+            layoutManager = LinearLayoutManager(this@DashboardActivity)
+            adapter = probabilidadAdapter
+            itemAnimator = null
+        }
+
+        weeklyCategoryAdapter = MonthlyCategoryAdapter(decimalFormat, ::parseCategoryColor) { cat ->
+            weeklyFiltroCategoria = if (weeklyFiltroCategoria == cat) null else cat
+            renderWeeklyDays()
+        }
+        findViewById<RecyclerView>(R.id.rvWeeklyCategoryList).apply {
+            layoutManager = LinearLayoutManager(this@DashboardActivity)
+            adapter = weeklyCategoryAdapter
+            itemAnimator = null
+        }
+
+        weeklyDayAdapter = MonthlyDayAdapter(decimalFormat, ::parseCategoryColor, ::formatDayLabel) { dia ->
+            val ahorro = dia.monto * 0.2
+            MaterialAlertDialogBuilder(this@DashboardActivity)
+                .setTitle("Alerta de ahorro · ${formatDayLabel(dia.fecha)}")
+                .setMessage(
+                    "Gasto estimado en ${dia.categoria}: Bs. ${decimalFormat.format(dia.monto)}.\n" +
+                        "Si ajustás un 20%, ahorrarías aprox. Bs. ${decimalFormat.format(ahorro)}."
+                )
+                .setPositiveButton("Entendido", null)
+                .show()
+        }
+        findViewById<RecyclerView>(R.id.rvWeeklyDayList).apply {
+            layoutManager = LinearLayoutManager(this@DashboardActivity)
+            adapter = weeklyDayAdapter
+            itemAnimator = null
+        }
     }
 
     override fun onResume() {
@@ -110,19 +169,22 @@ class DashboardActivity : BaseActivity() {
                         findViewById<TextView>(R.id.tvPrediccionMonto).text = "Bs. ${pred.total}"
                         findViewById<TextView>(R.id.tvPrediccionNivel).text = pred.nivel
                         findViewById<TextView>(R.id.tvPrediccionDiferencia).text = pred.diferenciaPrevia
-                        
-                        val llLista = findViewById<LinearLayout>(R.id.llProbabilidadesList)
-                        llLista.removeAllViews()
-                        
-                        pred.probabilidades.forEach { item ->
-                            val view = LayoutInflater.from(this@DashboardActivity)
-                                .inflate(R.layout.item_probabilidad_ia, llLista, false)
-                            
-                            view.findViewById<TextView>(R.id.tvProbItemNombre).text = item.nombre
-                            view.findViewById<TextView>(R.id.tvProbItemDetalle).text = "${item.hora} • ${item.porcentaje}% probabilidad"
-                            view.findViewById<TextView>(R.id.tvProbItemMonto).text = "Bs. ${item.monto}"
-                            
-                            llLista.addView(view)
+                        probabilidadAdapter.submit(pred.probabilidades)
+                        val monto = pred.total.toDoubleOrNull() ?: 0.0
+                        val tvSem = findViewById<TextView>(R.id.tvPrediccionSemaforo)
+                        when {
+                            monto < 80 -> {
+                                tvSem.text = "Alerta IA: Verde (gasto diario bajo)"
+                                tvSem.setTextColor(Color.parseColor("#7CFFB2"))
+                            }
+                            monto < 180 -> {
+                                tvSem.text = "Alerta IA: Amarillo (vigilar gasto)"
+                                tvSem.setTextColor(Color.parseColor("#FFD166"))
+                            }
+                            else -> {
+                                tvSem.text = "Alerta IA: Rojo (riesgo de sobrepaso)"
+                                tvSem.setTextColor(Color.parseColor("#FF6B6B"))
+                            }
                         }
                     }
                 } else {
@@ -130,7 +192,8 @@ class DashboardActivity : BaseActivity() {
                     findViewById<TextView>(R.id.tvPrediccionMonto).text = "Bs. 0.00"
                     findViewById<TextView>(R.id.tvPrediccionNivel).text = "Sin predicción"
                     findViewById<TextView>(R.id.tvPrediccionDiferencia).text = "No hay datos IA para este día"
-                    findViewById<LinearLayout>(R.id.llProbabilidadesList).removeAllViews()
+                    findViewById<TextView>(R.id.tvPrediccionSemaforo).text = "Alerta IA: —"
+                    probabilidadAdapter.submit(emptyList())
                 }
             } catch (e: Exception) {
                 // Silencioso para caso de error de api
@@ -142,10 +205,9 @@ class DashboardActivity : BaseActivity() {
     private fun cargarResumenSemanal() {
         val subtitle = findViewById<TextView>(R.id.tvWeeklyExpenseSubtitle)
         val totalText = findViewById<TextView>(R.id.tvWeeklyExpenseTotal)
+        val riskText = findViewById<TextView>(R.id.tvWeeklyRisk)
         val emptyText = findViewById<TextView>(R.id.tvWeeklyExpenseEmpty)
-        val categoryList = findViewById<LinearLayout>(R.id.llWeeklyCategoryList)
         val chartBar = findViewById<LinearLayout>(R.id.llWeeklyChartBar)
-        val dayList = findViewById<LinearLayout>(R.id.llWeeklyDayList)
 
         val startDate = Calendar.getInstance().apply {
             set(Calendar.DAY_OF_WEEK, firstDayOfWeek)
@@ -163,9 +225,14 @@ class DashboardActivity : BaseActivity() {
                 val response = RetrofitClient.instance.getPrediccionSemanal(fechaInicio)
                 if (!response.isSuccessful || response.body() == null) {
                     totalText.text = "Bs. 0.00"
-                    categoryList.removeAllViews()
                     chartBar.removeAllViews()
-                    dayList.removeAllViews()
+                    riskText.text = "Riesgo semanal: —"
+                    weeklyCategoriasCache = emptyList()
+                    weeklyDiasCache = emptyList()
+                    weeklyTotalCache = 0.0
+                    weeklyFiltroCategoria = null
+                    weeklyCategoryAdapter.submit(emptyList(), 0.0, null)
+                    weeklyDayAdapter.submit(emptyList())
                     emptyText.visibility = View.VISIBLE
                     return@launch
                 }
@@ -177,32 +244,31 @@ class DashboardActivity : BaseActivity() {
 
                 if (categorias.isEmpty()) {
                     totalText.text = "Bs. 0.00"
-                    categoryList.removeAllViews()
                     chartBar.removeAllViews()
-                    dayList.removeAllViews()
+                    riskText.text = "Riesgo semanal: —"
+                    weeklyCategoriasCache = emptyList()
+                    weeklyDiasCache = emptyList()
+                    weeklyTotalCache = 0.0
+                    weeklyFiltroCategoria = null
+                    weeklyCategoryAdapter.submit(emptyList(), 0.0, null)
+                    weeklyDayAdapter.submit(emptyList())
                     emptyText.visibility = View.VISIBLE
                     return@launch
                 }
 
                 val totalSemana = categorias.sumOf { it.monto }
                 totalText.text = "Bs. ${decimalFormat.format(totalSemana)}"
+                weeklyCategoriasCache = categorias
+                weeklyDiasCache = predSemanal.dias
+                weeklyTotalCache = totalSemana
+                weeklyFiltroCategoria = null
                 emptyText.visibility = View.GONE
-                categoryList.removeAllViews()
                 chartBar.removeAllViews()
-                dayList.removeAllViews()
+                weeklyCategoryAdapter.submit(categorias, totalSemana, null)
+                renderWeeklyDays()
 
                 categorias.forEach { categoria ->
                     val percent = if (totalSemana > 0.0) ((categoria.monto / totalSemana) * 100).roundToInt() else 0
-                    val itemView = LayoutInflater.from(this@DashboardActivity)
-                        .inflate(R.layout.item_weekly_category, categoryList, false)
-
-                    itemView.findViewById<TextView>(R.id.tvCategoryName).text = categoria.categoria
-                    itemView.findViewById<TextView>(R.id.tvCategoryAmount).text = "Bs. ${decimalFormat.format(categoria.monto)}"
-                    itemView.findViewById<TextView>(R.id.tvCategoryPercent).text = "$percent%"
-                    itemView.findViewById<View>(R.id.viewCategoryColor).setBackgroundColor(parseCategoryColor(categoria.colorHex))
-
-                    categoryList.addView(itemView)
-
                     val segment = View(this@DashboardActivity)
                     val safeWeight = if (percent <= 0) 0.5f else percent.toFloat()
                     segment.layoutParams = LinearLayout.LayoutParams(
@@ -214,23 +280,42 @@ class DashboardActivity : BaseActivity() {
                     chartBar.addView(segment)
                 }
 
-                predSemanal.dias.forEach { dia ->
-                    val row = LayoutInflater.from(this@DashboardActivity)
-                        .inflate(R.layout.item_prediction_day, dayList, false)
-                    row.findViewById<TextView>(R.id.tvDayLabel).text = formatDayLabel(dia.fecha)
-                    row.findViewById<TextView>(R.id.tvDayCategory).text = dia.categoria
-                    row.findViewById<TextView>(R.id.tvDayAmount).text = "Bs. ${decimalFormat.format(dia.monto)}"
-                    row.findViewById<View>(R.id.viewDayColor).setBackgroundColor(parseCategoryColor(dia.colorHex))
-                    dayList.addView(row)
+                val topPct = categorias.maxOfOrNull { if (totalSemana > 0) (it.monto / totalSemana) * 100 else 0.0 } ?: 0.0
+                when {
+                    topPct < 45 -> {
+                        riskText.text = "Riesgo semanal: Verde (gasto diversificado)"
+                        riskText.setTextColor(Color.parseColor("#7CFFB2"))
+                    }
+                    topPct < 70 -> {
+                        riskText.text = "Riesgo semanal: Amarillo (dependencia moderada)"
+                        riskText.setTextColor(Color.parseColor("#FFD166"))
+                    }
+                    else -> {
+                        riskText.text = "Riesgo semanal: Rojo (alta concentración en una categoría)"
+                        riskText.setTextColor(Color.parseColor("#FF6B6B"))
+                    }
                 }
             } catch (e: Exception) {
                 totalText.text = "Bs. 0.00"
-                categoryList.removeAllViews()
                 chartBar.removeAllViews()
-                dayList.removeAllViews()
+                riskText.text = "Riesgo semanal: —"
+                weeklyCategoriasCache = emptyList()
+                weeklyDiasCache = emptyList()
+                weeklyTotalCache = 0.0
+                weeklyFiltroCategoria = null
+                weeklyCategoryAdapter.submit(emptyList(), 0.0, null)
+                weeklyDayAdapter.submit(emptyList())
                 emptyText.visibility = View.VISIBLE
             }
         }
+    }
+
+    private fun renderWeeklyDays() {
+        val days =
+            if (weeklyFiltroCategoria == null) weeklyDiasCache
+            else weeklyDiasCache.filter { it.categoria == weeklyFiltroCategoria }
+        weeklyDayAdapter.submit(days)
+        weeklyCategoryAdapter.submit(weeklyCategoriasCache, weeklyTotalCache, weeklyFiltroCategoria)
     }
 
     private fun formatDayLabel(rawDate: String): String {

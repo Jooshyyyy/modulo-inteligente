@@ -41,33 +41,73 @@ def construir_features(fecha_test):
     }
 
 
-def inferir_para_dia(modelo_categoria, modelo_monto, fecha_test):
-    features = construir_features(fecha_test)
-
+def _probas_categoria(modelo_categoria, features):
     x_cat = pd.DataFrame([features])
-    probas = modelo_categoria.predict_proba(x_cat)[0]
+    probas = modelo_categoria.predict_proba(x_cat)[0].astype(float)
     clases = modelo_categoria.classes_
 
-    # Si el modelo está totalmente seguro, introducir variación
     if np.max(probas) >= 0.999:
         ruido = np.random.uniform(0.05, 0.15, size=len(probas))
         probas = probas + ruido
         probas = probas / probas.sum()
 
-    # Aplicar temperatura para suavizar distribución
     temperature = 1.5
     probas = np.power(probas, 1 / temperature)
     probas = probas / probas.sum()
+    return probas, clases
 
-    # Selección probabilística
+
+def inferir_para_dia(modelo_categoria, modelo_monto, fecha_test):
+    """Una fila por día: categoría muestreada (compatibilidad / pruebas)."""
+    features = construir_features(fecha_test)
+    probas, clases = _probas_categoria(modelo_categoria, features)
     categoria_pred = int(np.random.choice(clases, p=probas))
-    score_confianza = float(probas[np.where(clases == categoria_pred)][0])
-
-    # Predicción de monto
+    idx = int(np.where(clases == categoria_pred)[0][0])
+    score_confianza = float(probas[idx])
     x_monto = pd.DataFrame([{**features, "categoria_id": categoria_pred}])
     monto_pred = max(0.0, float(modelo_monto.predict(x_monto)[0]))
-
     return categoria_pred, round(monto_pred, 2), score_confianza
+
+
+def inferir_distribucion_dia(modelo_categoria, modelo_monto, fecha_test, top_k=6):
+    """
+    Varias filas por día: siempre las top_k probabilidades (>0), re-normalizadas,
+    para que exista reparto visible aunque el umbral 5%% dejara una sola clase.
+    """
+    features = construir_features(fecha_test)
+    probas, clases = _probas_categoria(modelo_categoria, features)
+
+    winner_idx = int(np.argmax(probas))
+    winner_cat = int(clases[winner_idx])
+    x_monto_w = pd.DataFrame([{**features, "categoria_id": winner_cat}])
+    monto_total = max(0.0, float(modelo_monto.predict(x_monto_w)[0]))
+
+    order = np.argsort(-probas)
+    idxs = []
+    for i in order[:top_k]:
+        ii = int(i)
+        if float(probas[ii]) < 1e-12:
+            continue
+        idxs.append(ii)
+
+    if not idxs:
+        idxs = [winner_idx]
+
+    sub_p = probas[idxs].astype(float)
+    sub_p = sub_p / sub_p.sum()
+
+    filas = []
+    for j, fi in enumerate(idxs):
+        cat_id = int(clases[fi])
+        m_part = round(float(sub_p[j]) * monto_total, 2)
+        conf = float(probas[fi])
+        if m_part > 0:
+            filas.append((cat_id, m_part, conf))
+
+    if not filas:
+        filas.append((winner_cat, round(monto_total, 2), float(probas[winner_idx])))
+
+    return filas
 
 
 def rango_fechas(fecha_inicio, fecha_fin):
@@ -90,24 +130,28 @@ def fecha_fin_mes(fecha_inicio):
     return siguiente_mes - timedelta(days=1)
 
 
-def upsert_prediccion(cur, usuario_id, categoria_id, fecha_prediccion, monto, confianza):
-    delete_query = """
+def borrar_predicciones_del_dia(cur, usuario_id, fecha_prediccion):
+    cur.execute(
+        """
         DELETE FROM predicciones_gastos
         WHERE usuario_id = %s
-          AND categoria_id = %s
-          AND fecha_prediccion = %s
-    """
+          AND fecha_prediccion::date = %s::date
+        """,
+        (usuario_id, fecha_prediccion),
+    )
 
-    insert_query = """
+
+def insertar_prediccion(cur, usuario_id, categoria_id, fecha_prediccion, monto, confianza):
+    cur.execute(
+        """
         INSERT INTO predicciones_gastos (
             usuario_id, categoria_id, fecha_prediccion,
             monto_proyectado, score_confianza, es_modelo_personal
         )
         VALUES (%s, %s, %s, %s, %s, %s)
-    """
-
-    cur.execute(delete_query, (usuario_id, categoria_id, fecha_prediccion))
-    cur.execute(insert_query, (usuario_id, categoria_id, fecha_prediccion, monto, confianza, True))
+        """,
+        (usuario_id, categoria_id, fecha_prediccion, monto, confianza, True),
+    )
 
 
 def main():
@@ -145,23 +189,25 @@ def main():
     try:
         with conn.cursor() as cur:
             for fecha in rango_fechas(fecha_inicio, fecha_fin):
-                categoria_id, monto, confianza = inferir_para_dia(
-                    modelo_categoria, modelo_monto, fecha
-                )
+                filas = inferir_distribucion_dia(modelo_categoria, modelo_monto, fecha)
+                borrar_predicciones_del_dia(cur, args.usuario_id, fecha.date())
+                for categoria_id, monto, confianza in filas:
+                    insertar_prediccion(
+                        cur,
+                        args.usuario_id,
+                        categoria_id,
+                        fecha.date(),
+                        monto,
+                        confianza,
+                    )
 
-                upsert_prediccion(
-                    cur,
-                    args.usuario_id,
-                    categoria_id,
-                    fecha.date(),
-                    monto,
-                    confianza,
+                resumen = ", ".join(
+                    f"cat={cid} m={m} conf={round(cf, 3)}"
+                    for cid, m, cf in filas
                 )
-
                 print(
                     f"[OK] usuario={args.usuario_id} fecha={fecha.date()} "
-                    f"categoria={categoria_id} monto={monto} "
-                    f"confianza={round(confianza, 4)}"
+                    f"filas={len(filas)} | {resumen}"
                 )
 
             conn.commit()

@@ -6,6 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
+    android:background="#1A1829"
     tools:openDrawer="start">
 
     <LinearLayout
@@ -17,10 +18,10 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
+            android:background="#1A1829"
             app:navigationIcon="@drawable/ic_menu"
-            app:title="Coach IA y predicciones"
-            app:titleTextColor="?attr/colorOnPrimary" />
+            app:title="Coach IA y Predicciones"
+            app:titleTextColor="#FFFFFF" />
 
         <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
@@ -33,104 +34,28 @@
                 android:orientation="vertical"
                 android:padding="16dp">
 
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/cardIaCoach"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    app:cardBackgroundColor="@color/primary_navy_light"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="4dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:letterSpacing="0.05"
-                            android:text="COACH DE AHORRO · IA"
-                            android:textAllCaps="true"
-                            android:textColor="@color/secondary_gold"
-                            android:textSize="11sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/tvCoachNarrativa"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="10dp"
-                            android:lineSpacingExtra="3dp"
-                            android:textColor="@color/white"
-                            android:textSize="14sp" />
-
-                        <LinearLayout
-                            android:id="@+id/llCoachIndicadores"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
-                            android:orientation="vertical" />
-
-                        <ProgressBar
-                            android:id="@+id/pbMetaProgreso"
-                            style="?android:attr/progressBarStyleHorizontal"
-                            android:layout_width="match_parent"
-                            android:layout_height="8dp"
-                            android:layout_marginTop="14dp"
-                            android:max="100"
-                            android:progressTint="@color/secondary_gold"
-                            android:visibility="gone" />
-
-                        <TextView
-                            android:id="@+id/tvMetaResumen"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:textColor="@color/white"
-                            android:textSize="13sp"
-                            android:visibility="gone" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="16dp"
-                            android:text="Acciones sugeridas por el modelo"
-                            android:textColor="@color/secondary_gold"
-                            android:textSize="12sp"
-                            android:textStyle="bold" />
-
-                        <LinearLayout
-                            android:id="@+id/llCoachSugerencias"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:orientation="vertical" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
+                <!-- PASO 1: META -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    app:cardCornerRadius="14dp"
-                    app:cardElevation="2dp"
-                    app:strokeColor="@color/divider"
+                    android:layout_marginBottom="24dp"
+                    app:cardBackgroundColor="#1A1829"
+                    app:cardCornerRadius="24dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="#6E56FF"
                     app:strokeWidth="1dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="16dp">
+                        android:padding="20dp">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Tu meta personal"
-                            android:textColor="@color/text_primary"
+                            android:text="Paso 1 · Definí tu meta"
+                            android:textColor="#FFFFFF"
                             android:textSize="16sp"
                             android:textStyle="bold" />
 
@@ -138,15 +63,15 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
-                            android:text="Elige un objetivo; la IA cruza tus predicciones de gasto y calcula cuánto te acerca cada recorte."
-                            android:textColor="@color/text_secondary"
+                            android:text="Sin una meta activa, el coach no puede medir el impacto de cada recorte. Elegí un objetivo concreto y fecha límite."
+                            android:textColor="#A0A0A0"
                             android:textSize="12sp" />
 
                         <com.google.android.material.chip.ChipGroup
                             android:id="@+id/chipGroupPlantilla"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="10dp"
+                            android:layout_marginTop="16dp"
                             app:singleLine="false"
                             app:singleSelection="true">
 
@@ -155,6 +80,8 @@
                                 style="@style/Widget.MaterialComponents.Chip.Filter"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                app:chipBackgroundColor="#2A2A40"
+                                android:textColor="#FFFFFF"
                                 android:text="Vacaciones" />
 
                             <com.google.android.material.chip.Chip
@@ -162,6 +89,8 @@
                                 style="@style/Widget.MaterialComponents.Chip.Filter"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                app:chipBackgroundColor="#2A2A40"
+                                android:textColor="#FFFFFF"
                                 android:text="Equipo / tech" />
 
                             <com.google.android.material.chip.Chip
@@ -169,6 +98,8 @@
                                 style="@style/Widget.MaterialComponents.Chip.Filter"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                app:chipBackgroundColor="#2A2A40"
+                                android:textColor="#FFFFFF"
                                 android:text="Viaje" />
 
                             <com.google.android.material.chip.Chip
@@ -176,6 +107,8 @@
                                 style="@style/Widget.MaterialComponents.Chip.Filter"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                app:chipBackgroundColor="#2A2A40"
+                                android:textColor="#FFFFFF"
                                 android:text="Emergencia" />
 
                             <com.google.android.material.chip.Chip
@@ -183,6 +116,8 @@
                                 style="@style/Widget.MaterialComponents.Chip.Filter"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                app:chipBackgroundColor="#2A2A40"
+                                android:textColor="#FFFFFF"
                                 android:text="Otro" />
                         </com.google.android.material.chip.ChipGroup>
 
@@ -191,13 +126,16 @@
                             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
+                            android:layout_marginTop="16dp"
+                            app:boxStrokeColor="#6E56FF"
+                            android:textColorHint="#B0B0C0"
                             android:hint="Nombre de la meta">
 
                             <com.google.android.material.textfield.TextInputEditText
                                 android:id="@+id/etMetaTitulo"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:textColor="#FFFFFF"
                                 android:inputType="textCapSentences" />
                         </com.google.android.material.textfield.TextInputLayout>
 
@@ -207,12 +145,15 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
+                            app:boxStrokeColor="#6E56FF"
+                            android:textColorHint="#B0B0C0"
                             android:hint="Monto objetivo (Bs.)">
 
                             <com.google.android.material.textfield.TextInputEditText
                                 android:id="@+id/etMetaMonto"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:textColor="#FFFFFF"
                                 android:inputType="numberDecimal" />
                         </com.google.android.material.textfield.TextInputLayout>
 
@@ -222,13 +163,17 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
+                            app:boxStrokeColor="#6E56FF"
+                            android:textColorHint="#B0B0C0"
                             android:hint="Fecha límite (AAAA-MM-DD)">
 
                             <com.google.android.material.textfield.TextInputEditText
                                 android:id="@+id/etMetaFecha"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:inputType="date" />
+                                android:textColor="#FFFFFF"
+                                android:inputType="text"
+                                android:hint="AAAA-MM-DD" />
                         </com.google.android.material.textfield.TextInputLayout>
 
                         <com.google.android.material.textfield.TextInputLayout
@@ -237,6 +182,8 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
+                            app:boxStrokeColor="#6E56FF"
+                            android:textColorHint="#B0B0C0"
                             android:hint="Ya ahorrado a la fecha (Bs.)"
                             android:visibility="gone">
 
@@ -244,13 +191,14 @@
                                 android:id="@+id/etMetaAcumulado"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:textColor="#FFFFFF"
                                 android:inputType="numberDecimal" />
                         </com.google.android.material.textfield.TextInputLayout>
 
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
+                            android:layout_marginTop="16dp"
                             android:gravity="end"
                             android:orientation="horizontal">
 
@@ -259,6 +207,7 @@
                                 style="@style/Widget.MaterialComponents.Button.TextButton"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:textColor="#FFFFFF"
                                 android:text="Pausar meta"
                                 android:visibility="gone" />
 
@@ -268,112 +217,319 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginEnd="8dp"
+                                app:strokeColor="#FFFFFF"
+                                android:textColor="#FFFFFF"
                                 android:text="Guardar progreso"
                                 android:visibility="gone" />
 
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/btnGuardarMeta"
                                 android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Activar meta" />
+                                android:layout_height="52dp"
+                                app:backgroundTint="#6E56FF"
+                                android:textColor="#FFFFFF"
+                                android:text="Establecer meta" />
                         </LinearLayout>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <LinearLayout
+                <!-- PASO 2: COACH -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardIaCoach"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
+                    android:layout_marginBottom="24dp"
+                    app:cardBackgroundColor="#2A2A40"
+                    app:cardCornerRadius="24dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="#6E56FF"
+                    app:strokeWidth="1dp">
 
-                    <Button
-                        android:id="@+id/btnPrevMonth"
-                        style="?android:attr/borderlessButtonStyle"
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="◀"
-                        android:textColor="?attr/colorPrimary" />
+                        android:orientation="vertical"
+                        android:padding="20dp">
 
-                    <TextView
-                        android:id="@+id/tvMonthTitle"
-                        android:layout_width="0dp"
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:letterSpacing="0.05"
+                            android:text="Paso 2 · Coach de ahorro (IA)"
+                            android:textAllCaps="true"
+                            android:textColor="#FFFFFF"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="14dp"
+                            android:orientation="horizontal">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical"
+                                android:paddingEnd="8dp">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Gasto proyectado del mes"
+                                    android:textColor="#8E8EA8"
+                                    android:textSize="11sp" />
+
+                                <TextView
+                                    android:id="@+id/tvCoachKpiGasto"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:text="—"
+                                    android:textColor="#FFFFFF"
+                                    android:textSize="18sp"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical"
+                                android:paddingStart="8dp">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Días con predicción"
+                                    android:textColor="#8E8EA8"
+                                    android:textSize="11sp" />
+
+                                <TextView
+                                    android:id="@+id/tvCoachKpiDias"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:text="—"
+                                    android:textColor="#FFFFFF"
+                                    android:textSize="18sp"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/tvCoachSemaforo"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:background="#1A1829"
+                            android:paddingHorizontal="10dp"
+                            android:paddingVertical="6dp"
+                            android:text="Riesgo: —"
+                            android:textColor="#D0D0E0"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvCoachNarrativa"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="14dp"
+                            android:lineSpacingExtra="3dp"
+                            android:textColor="#FFFFFF"
+                            android:textSize="14sp" />
+
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/rvCoachIndicadores"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:overScrollMode="never"
+                            android:nestedScrollingEnabled="false"
+                            tools:listitem="@layout/item_ia_coach_indicator" />
+
+                        <ProgressBar
+                            android:id="@+id/pbMetaProgreso"
+                            style="?android:attr/progressBarStyleHorizontal"
+                            android:layout_width="match_parent"
+                            android:layout_height="8dp"
+                            android:layout_marginTop="14dp"
+                            android:max="100"
+                            android:progressTint="#6E56FF"
+                            android:visibility="gone" />
+
+                        <TextView
+                            android:id="@+id/tvMetaResumen"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:textColor="#FFFFFF"
+                            android:textSize="13sp"
+                            android:visibility="gone" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="20dp"
+                            android:text="Recortes con impacto en tu meta"
+                            android:textColor="#B0B0C0"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/rvCoachSugerencias"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:overScrollMode="never"
+                            android:nestedScrollingEnabled="false"
+                            tools:listitem="@layout/item_ia_coach_suggestion" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- PASO 3: MAPA DEL MES -->
+                <!-- MONTHLY PROJECTION -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="30dp"
+                    app:cardBackgroundColor="#2A2A40"
+                    app:cardCornerRadius="24dp"
+                    app:cardElevation="0dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:text="Mes"
-                        android:textColor="@color/text_primary"
-                        android:textSize="18sp"
-                        android:textStyle="bold" />
+                        android:orientation="vertical"
+                        android:padding="20dp">
 
-                    <Button
-                        android:id="@+id/btnNextMonth"
-                        style="?android:attr/borderlessButtonStyle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="▶"
-                        android:textColor="?attr/colorPrimary" />
-                </LinearLayout>
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
 
-                <TextView
-                    android:id="@+id/tvMonthTotal"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:text="Bs. 0.00"
-                    android:textColor="?attr/colorPrimary"
-                    android:textSize="24sp"
-                    android:textStyle="bold" />
+                            <Button
+                                android:id="@+id/btnPrevMonth"
+                                style="?android:attr/borderlessButtonStyle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="◀"
+                                android:textColor="#6E56FF" />
 
-                <LinearLayout
-                    android:id="@+id/llMonthlyChartBar"
-                    android:layout_width="match_parent"
-                    android:layout_height="18dp"
-                    android:layout_marginTop="12dp"
-                    android:background="@color/divider"
-                    android:orientation="horizontal" />
+                            <TextView
+                                android:id="@+id/tvMonthTitle"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:gravity="center"
+                                android:text="Mes"
+                                android:textColor="#FFFFFF"
+                                android:textSize="18sp"
+                                android:textStyle="bold" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
-                    android:text="Distribución por categoría"
-                    android:textColor="@color/text_primary"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
+                            <Button
+                                android:id="@+id/btnNextMonth"
+                                style="?android:attr/borderlessButtonStyle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="▶"
+                                android:textColor="#6E56FF" />
+                        </LinearLayout>
 
-                <LinearLayout
-                    android:id="@+id/llMonthlyCategoryList"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:orientation="vertical" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="Paso 3 · Explorá tu mes"
+                            android:textColor="#8E8EA8"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
-                    android:text="Predicción diaria"
-                    android:textColor="@color/text_primary"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
+                        <TextView
+                            android:id="@+id/tvMonthTotal"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:text="Bs. 0.00"
+                            android:textColor="#FFFFFF"
+                            android:textSize="32sp"
+                            android:textStyle="bold" />
 
-                <TextView
-                    android:id="@+id/tvSelectedDayInsight"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:background="@color/bg_light"
-                    android:padding="10dp"
-                    android:text="Selecciona un día para ver detalle."
-                    android:textColor="@color/text_secondary"
-                    android:textSize="13sp" />
+                        <TextView
+                            android:id="@+id/tvMonthSubtitle"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:text="Suma de lo que el modelo espera gastar en el mes. Usalo para comparar con tu meta y con los recortes del coach."
+                            android:textColor="#A0A0A0"
+                            android:textSize="12sp" />
 
-                <LinearLayout
-                    android:id="@+id/llMonthlyDayList"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:orientation="vertical" />
+                        <androidx.cardview.widget.CardView
+                            android:layout_width="match_parent"
+                            android:layout_height="20dp"
+                            android:layout_marginTop="16dp"
+                            app:cardCornerRadius="10dp"
+                            app:cardElevation="0dp"
+                            app:cardBackgroundColor="#1A1829">
+                            
+                            <LinearLayout
+                                android:id="@+id/llMonthlyChartBar"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:orientation="horizontal" />
+                        </androidx.cardview.widget.CardView>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="24dp"
+                            android:text="Categorías (tocá para filtrar días)"
+                            android:textColor="#B0B0C0"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/rvMonthlyCategoryList"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="16dp"
+                            android:overScrollMode="never"
+                            android:nestedScrollingEnabled="false"
+                            tools:listitem="@layout/item_weekly_category" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="24dp"
+                            android:text="Días del mes"
+                            android:textColor="#B0B0C0"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvSelectedDayInsight"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:background="#1A1829"
+                            android:padding="12dp"
+                            android:text="Tocá una categoría arriba o un día acá para ver el detalle."
+                            android:textColor="#A0A0A0"
+                            android:textSize="13sp" />
+
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/rvMonthlyDayList"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:overScrollMode="never"
+                            android:nestedScrollingEnabled="false"
+                            tools:listitem="@layout/item_prediction_day" />
+
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
 
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>

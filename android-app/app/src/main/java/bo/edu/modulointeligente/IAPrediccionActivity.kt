@@ -6,18 +6,24 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.Button
-import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.chip.ChipGroup
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
+import bo.edu.modulointeligente.ui.prediccion.CoachIndicatorAdapter
+import bo.edu.modulointeligente.ui.prediccion.CoachSuggestionAdapter
+import bo.edu.modulointeligente.ui.prediccion.MonthlyCategoryAdapter
+import bo.edu.modulointeligente.ui.prediccion.MonthlyDayAdapter
 import kotlinx.coroutines.launch
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
@@ -44,6 +50,18 @@ class IAPrediccionActivity : BaseActivity() {
     ).map { SimpleDateFormat(it, Locale.getDefault()) }
 
     private var metaIdActual: Int? = null
+    private var diasMesCache: List<PrediccionDetalleDia> = emptyList()
+    private var categoriasMesCache: List<PrediccionSemanalCategoria> = emptyList()
+    private var totalMesCache: Double = 0.0
+    private var categoriaFiltro: String? = null
+    private var textoInsightPredeterminado: String = ""
+    private var metaActual: MetaFinanciera? = null
+    private var gastoProyectadoMesActual: Double? = null
+
+    private lateinit var indicatorAdapter: CoachIndicatorAdapter
+    private lateinit var suggestionAdapter: CoachSuggestionAdapter
+    private lateinit var categoryAdapter: MonthlyCategoryAdapter
+    private lateinit var dayAdapter: MonthlyDayAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -81,7 +99,69 @@ class IAPrediccionActivity : BaseActivity() {
             refrescarPantalla()
         }
 
+        setupRecyclerUis()
         refrescarPantalla()
+    }
+
+    private fun setupRecyclerUis() {
+        indicatorAdapter = CoachIndicatorAdapter()
+        suggestionAdapter = CoachSuggestionAdapter(decimalFormat) { s ->
+            MaterialAlertDialogBuilder(this)
+                .setTitle(s.titulo)
+                .setMessage(s.mensaje)
+                .setPositiveButton("Entendido", null)
+                .show()
+        }
+
+        findViewById<RecyclerView>(R.id.rvCoachIndicadores).apply {
+            layoutManager = LinearLayoutManager(this@IAPrediccionActivity)
+            adapter = indicatorAdapter
+            itemAnimator = null
+        }
+        findViewById<RecyclerView>(R.id.rvCoachSugerencias).apply {
+            layoutManager = LinearLayoutManager(this@IAPrediccionActivity)
+            adapter = suggestionAdapter
+            itemAnimator = null
+        }
+
+        categoryAdapter = MonthlyCategoryAdapter(decimalFormat, ::parseCategoryColor) { cat ->
+            categoriaFiltro = if (categoriaFiltro == cat) null else cat
+            renderDiasDelMes()
+        }
+        dayAdapter = MonthlyDayAdapter(decimalFormat, ::parseCategoryColor, ::formatDayLabel) { dia ->
+            mostrarConsejoRapidoDia(dia)
+        }
+
+        findViewById<RecyclerView>(R.id.rvMonthlyCategoryList).apply {
+            layoutManager = LinearLayoutManager(this@IAPrediccionActivity)
+            adapter = categoryAdapter
+            itemAnimator = null
+        }
+        findViewById<RecyclerView>(R.id.rvMonthlyDayList).apply {
+            layoutManager = LinearLayoutManager(this@IAPrediccionActivity)
+            adapter = dayAdapter
+            itemAnimator = null
+        }
+    }
+
+    private fun mostrarConsejoRapidoDia(dia: PrediccionDetalleDia) {
+        val fecha = formatDayLabel(dia.fecha)
+        val base = "Día: $fecha\nCategoría dominante: ${dia.categoria}\nGasto proyectado: Bs. ${decimalFormat.format(dia.monto)}\n"
+        val meta = metaActual
+        val extra =
+            if (meta != null && meta.montoObjetivo > 0) {
+                val ahorro = (dia.monto * 0.2).coerceAtLeast(0.0)
+                val impacto = if (meta.montoRestante > 0) (ahorro / meta.montoRestante) * 100 else 0.0
+                "\nConsejo: si reducís un 20% ese día, liberarías Bs. ${decimalFormat.format(ahorro)} (~${decimalFormat.format(impacto)}% de lo que te falta)."
+            } else {
+                "\nConsejo: probá poner una meta para que el coach mida impacto real (en Bs. y %)."
+            }
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Consejo de ahorro")
+            .setMessage(base + extra)
+            .setPositiveButton("Ok", null)
+            .show()
     }
 
     private fun refrescarPantalla() {
@@ -198,8 +278,9 @@ class IAPrediccionActivity : BaseActivity() {
     private fun cargarIaCoach() {
         val mesApi = monthApiFormat.format(monthCalendar.time)
         val tvCoachNarrativa = findViewById<TextView>(R.id.tvCoachNarrativa)
-        val llInd = findViewById<LinearLayout>(R.id.llCoachIndicadores)
-        val llSug = findViewById<LinearLayout>(R.id.llCoachSugerencias)
+        val tvKpiGasto = findViewById<TextView>(R.id.tvCoachKpiGasto)
+        val tvKpiDias = findViewById<TextView>(R.id.tvCoachKpiDias)
+        val tvSemaforo = findViewById<TextView>(R.id.tvCoachSemaforo)
         val pb = findViewById<ProgressBar>(R.id.pbMetaProgreso)
         val tvMetaResumen = findViewById<TextView>(R.id.tvMetaResumen)
         val tilAc = findViewById<TextInputLayout>(R.id.tilMetaAcumulado)
@@ -212,48 +293,29 @@ class IAPrediccionActivity : BaseActivity() {
                 val response = RetrofitClient.instance.getIaCoach(mesApi)
                 if (!response.isSuccessful || response.body() == null) {
                     tvCoachNarrativa.text = "No se pudo cargar el coach de IA."
-                    llInd.removeAllViews()
-                    llSug.removeAllViews()
+                    tvKpiGasto.text = "—"
+                    tvKpiDias.text = "—"
+                    tvSemaforo.text = "Riesgo: —"
+                    indicatorAdapter.submit(emptyList())
+                    suggestionAdapter.submit(emptyList())
                     return@launch
                 }
 
                 val data = response.body()!!
+                metaActual = data.meta
+                gastoProyectadoMesActual = data.gastoProyectadoMes
                 tvCoachNarrativa.text = data.narrativa
+                val gp = data.gastoProyectadoMes
+                tvKpiGasto.text =
+                    if (gp.isNaN()) "—" else "Bs. ${decimalFormat.format(gp)}"
+                tvKpiDias.text = data.diasConPrediccion.toString()
 
-                llInd.removeAllViews()
-                data.indicadores.forEach { ind ->
-                    val tv = TextView(this@IAPrediccionActivity)
-                    tv.text = "${ind.etiqueta}: ${ind.valor}\n${ind.detalle}"
-                    tv.setTextColor(Color.WHITE)
-                    tv.textSize = 12f
-                    tv.setPadding(0, 6, 0, 6)
-                    llInd.addView(tv)
-                }
+                indicatorAdapter.submit(data.indicadores)
 
-                llSug.removeAllViews()
                 if (data.sugerencias.isEmpty()) {
-                    val empty = TextView(this@IAPrediccionActivity)
-                    empty.text =
-                        if (data.diasConPrediccion == 0) {
-                            "Sin predicciones en este mes: genera datos con el job de IA para ver recortes con porcentaje hacia tu meta."
-                        } else {
-                            "Ajusta tu meta o el mes; el modelo aún no tiene suficiente variación para sugerencias."
-                        }
-                    empty.setTextColor(Color.WHITE)
-                    empty.alpha = 0.9f
-                    empty.textSize = 12f
-                    llSug.addView(empty)
+                    suggestionAdapter.submit(emptyList())
                 } else {
-                    data.sugerencias.forEach { s ->
-                        val row = LayoutInflater.from(this@IAPrediccionActivity)
-                            .inflate(R.layout.item_ia_coach_suggestion, llSug, false)
-                        row.findViewById<TextView>(R.id.tvSuggestionTitle).text = s.titulo
-                        row.findViewById<TextView>(R.id.tvSuggestionBody).text = s.mensaje
-                        val badge = row.findViewById<TextView>(R.id.tvSuggestionBadge)
-                        val pct = s.porcentajeAcercamientoMeta
-                        badge.text = "+${decimalFormat.format(pct)}% meta"
-                        llSug.addView(row)
-                    }
+                    suggestionAdapter.submit(data.sugerencias.sortedBy { it.prioridad })
                 }
 
                 val meta = data.meta
@@ -284,10 +346,35 @@ class IAPrediccionActivity : BaseActivity() {
                     btnProg.isVisible = false
                     btnGuardar.text = "Activar meta"
                 }
+
+                // Semáforo: compara gasto proyectado del mes vs meta (presupuesto)
+                if (meta != null && meta.montoObjetivo > 0 && !gp.isNaN()) {
+                    val ratio = gp / meta.montoObjetivo
+                    when {
+                        ratio <= 0.75 -> {
+                            tvSemaforo.text = "Riesgo: Verde (controlado)"
+                            tvSemaforo.setTextColor(Color.parseColor("#7CFFB2"))
+                        }
+                        ratio <= 1.0 -> {
+                            tvSemaforo.text = "Riesgo: Amarillo (cerca del límite)"
+                            tvSemaforo.setTextColor(Color.parseColor("#FFD166"))
+                        }
+                        else -> {
+                            tvSemaforo.text = "Riesgo: Rojo (probable excedente)"
+                            tvSemaforo.setTextColor(Color.parseColor("#FF6B6B"))
+                        }
+                    }
+                } else {
+                    tvSemaforo.text = "Riesgo: — (definí una meta para comparar)"
+                    tvSemaforo.setTextColor(Color.parseColor("#D0D0E0"))
+                }
             } catch (_: Exception) {
                 tvCoachNarrativa.text = "Error al cargar el coach de IA."
-                llInd.removeAllViews()
-                llSug.removeAllViews()
+                tvKpiGasto.text = "—"
+                tvKpiDias.text = "—"
+                findViewById<TextView>(R.id.tvCoachSemaforo).text = "Riesgo: —"
+                indicatorAdapter.submit(emptyList())
+                suggestionAdapter.submit(emptyList())
             }
         }
     }
@@ -296,9 +383,7 @@ class IAPrediccionActivity : BaseActivity() {
         val monthTitle = findViewById<TextView>(R.id.tvMonthTitle)
         val monthTotal = findViewById<TextView>(R.id.tvMonthTotal)
         val insight = findViewById<TextView>(R.id.tvSelectedDayInsight)
-        val chartBar = findViewById<LinearLayout>(R.id.llMonthlyChartBar)
-        val categoryList = findViewById<LinearLayout>(R.id.llMonthlyCategoryList)
-        val dayList = findViewById<LinearLayout>(R.id.llMonthlyDayList)
+        val chartBar = findViewById<android.widget.LinearLayout>(R.id.llMonthlyChartBar)
 
         val mesApi = monthApiFormat.format(monthCalendar.time)
         monthTitle.text = monthDisplayFormat.format(monthCalendar.time).replaceFirstChar { it.uppercase() }
@@ -309,68 +394,76 @@ class IAPrediccionActivity : BaseActivity() {
                 if (!response.isSuccessful || response.body() == null) {
                     monthTotal.text = "Bs. 0.00"
                     insight.text = "Sin predicciones disponibles para este mes."
+                    diasMesCache = emptyList()
+                    categoriaFiltro = null
+                    textoInsightPredeterminado = insight.text.toString()
                     chartBar.removeAllViews()
-                    categoryList.removeAllViews()
-                    dayList.removeAllViews()
+                    categoryAdapter.submit(emptyList(), 0.0, null)
+                    dayAdapter.submit(emptyList())
                     return@launch
                 }
 
                 val data = response.body()!!
                 val categorias = data.categorias.filter { it.monto > 0.0 }
                 val dias = data.dias.sortedBy { it.fecha }
-                monthTotal.text = "Bs. ${decimalFormat.format(data.total)}"
+                diasMesCache = dias
+                categoriasMesCache = categorias
+                totalMesCache = data.total
+                categoriaFiltro = null
+                monthTotal.text = if (data.total.isNaN()) "Bs. 0.00" else "Bs. ${decimalFormat.format(data.total)}"
                 chartBar.removeAllViews()
-                categoryList.removeAllViews()
-                dayList.removeAllViews()
 
                 categorias.forEach { categoria ->
                     if (categoria.monto.isNaN()) return@forEach
-                    val itemView = LayoutInflater.from(this@IAPrediccionActivity)
-                        .inflate(R.layout.item_weekly_category, categoryList, false)
                     val percent = if (data.total > 0.0 && !data.total.isNaN()) ((categoria.monto / data.total) * 100).roundToInt() else 0
-                    itemView.findViewById<TextView>(R.id.tvCategoryName).text = categoria.categoria
-                    itemView.findViewById<TextView>(R.id.tvCategoryAmount).text = "Bs. ${decimalFormat.format(categoria.monto)}"
-                    itemView.findViewById<TextView>(R.id.tvCategoryPercent).text = "$percent%"
-                    itemView.findViewById<View>(R.id.viewCategoryColor).setBackgroundColor(parseCategoryColor(categoria.colorHex))
-                    categoryList.addView(itemView)
-
                     val segment = View(this@IAPrediccionActivity)
                     val safeWeight = if (percent <= 0) 0.5f else percent.toFloat()
-                    segment.layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, safeWeight)
+                    segment.layoutParams = android.widget.LinearLayout.LayoutParams(
+                        0,
+                        android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                        safeWeight
+                    )
                     segment.setBackgroundColor(parseCategoryColor(categoria.colorHex))
                     chartBar.addView(segment)
                 }
 
-                if (dias.isEmpty()) {
-                    insight.text = "Sin detalle diario en el mes seleccionado."
+                textoInsightPredeterminado = if (dias.isEmpty()) {
+                    "Sin detalle diario en el mes seleccionado."
                 } else {
                     val topDay = dias.maxByOrNull { it.monto }!!
-                    insight.text =
-                        "Día más alto: ${formatDayLabel(topDay.fecha)} (${topDay.categoria}) Bs. ${decimalFormat.format(topDay.monto)}"
+                    "Pico del mes: ${formatDayLabel(topDay.fecha)} · ${topDay.categoria} · Bs. ${decimalFormat.format(topDay.monto)} " +
+                        "(confianza ${(topDay.confianza * 100).roundToInt()}%). Tocá un día para comparar."
                 }
-
-                dias.forEach { dia ->
-                    val row = LayoutInflater.from(this@IAPrediccionActivity)
-                        .inflate(R.layout.item_prediction_day, dayList, false)
-                    row.findViewById<TextView>(R.id.tvDayLabel).text = formatDayLabel(dia.fecha)
-                    row.findViewById<TextView>(R.id.tvDayCategory).text = dia.categoria
-                    row.findViewById<TextView>(R.id.tvDayAmount).text = "Bs. ${decimalFormat.format(dia.monto)}"
-                    row.findViewById<View>(R.id.viewDayColor).setBackgroundColor(parseCategoryColor(dia.colorHex))
-                    row.setOnClickListener {
-                        insight.text =
-                            "${formatDayLabel(dia.fecha)}: ${dia.categoria} - Bs. ${decimalFormat.format(dia.monto)} " +
-                                "(confianza ${(dia.confianza * 100).roundToInt()}%)"
-                    }
-                    dayList.addView(row)
-                }
+                categoryAdapter.submit(categorias, data.total, categoriaFiltro)
+                renderDiasDelMes()
             } catch (_: Exception) {
                 monthTotal.text = "Bs. 0.00"
                 insight.text = "No se pudo cargar la predicción mensual."
+                diasMesCache = emptyList()
+                categoriasMesCache = emptyList()
+                totalMesCache = 0.0
+                categoriaFiltro = null
+                textoInsightPredeterminado = insight.text.toString()
                 chartBar.removeAllViews()
-                categoryList.removeAllViews()
-                dayList.removeAllViews()
+                categoryAdapter.submit(emptyList(), 0.0, null)
+                dayAdapter.submit(emptyList())
             }
         }
+    }
+
+    private fun renderDiasDelMes() {
+        val insight = findViewById<TextView>(R.id.tvSelectedDayInsight)
+        val dias =
+            if (categoriaFiltro == null) diasMesCache else diasMesCache.filter { it.categoria == categoriaFiltro }
+        if (categoriaFiltro != null) {
+            val sub = dias.sumOf { d -> if (d.monto.isNaN()) 0.0 else d.monto }
+            insight.text =
+                "Filtrando: $categoriaFiltro · subtotal visible Bs. ${decimalFormat.format(sub)}. Tocá la misma categoría para limpiar."
+        } else {
+            insight.text = textoInsightPredeterminado
+        }
+        dayAdapter.submit(dias)
+        categoryAdapter.submit(categoriasMesCache, totalMesCache, categoriaFiltro)
     }
 
     private fun formatDayLabel(rawDate: String): String {
