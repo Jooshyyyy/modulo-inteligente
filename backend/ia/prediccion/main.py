@@ -5,6 +5,7 @@ from psycopg.rows import dict_row
 import joblib
 import numpy as np
 import random
+import pandas as pd
 from dotenv import load_dotenv
 
 # Cargar variables desde backend/.env
@@ -40,7 +41,8 @@ def generar_features(fecha, rolling7, rolling30):
     dia_mes = fecha.day
     mes = fecha.month
     dia_anio = fecha.timetuple().tm_yday
-    hora = 12
+    hora = random.choice([9, 12, 18])
+
     return {
         'dia_anio': dia_anio,
         'dia_semana': dia_semana,
@@ -68,11 +70,16 @@ registros_pred = []
 hist_montos = [100.0]*30
 
 rangos = {
-    10: (10, 200),
-    2: (1000, 4000),
-    3: (100, 1000),
-    1: (5, 100),
-    4: (500, 3000),
+    1: (10, 200),     
+    2: (5, 100),      
+    3: (1000, 4000),  
+    4: (100, 500),    
+    5: (500, 3000),   
+    6: (50, 500),     
+    7: (100, 1000),   
+    8: (50, 1000),    
+    9: (50, 2000),    
+    10: (10, 500)     
 }
 
 for d in range(DIAS_PREDICCION):
@@ -81,43 +88,94 @@ for d in range(DIAS_PREDICCION):
     rolling30 = np.mean(hist_montos[-30:])
     feats = generar_features(fecha_pred, rolling7, rolling30)
 
-    X_cat = np.array([list(feats.values())])
-    categoria_pred = modelo_cat.predict(X_cat)[0]
+    categorias_dia = set()
 
-    if categoria_pred in [10, 1]:
-        confianza = round(random.uniform(0.6,0.8),4)
-    elif categoria_pred in [3, 4]:
-        confianza = round(random.uniform(0.4,0.6),4)
-    else:
-        confianza = round(random.uniform(0.5,0.7),4)
+    X_cat = pd.DataFrame([feats])
+    proba = modelo_cat.predict_proba(X_cat)[0]
+    clases = modelo_cat.classes_
 
-    feats_monto = list(feats.values()) + [categoria_pred]
-    X_monto = np.array([feats_monto])
-    pred_log = modelo_monto.predict(X_monto)[0]
-    monto_pred = np.exp(pred_log) - 1
+    dia_sem = fecha_pred.weekday()  # 0=lunes, 6=domingo
+    dia_mes = fecha_pred.day
 
-    min_val, max_val = rangos.get(int(categoria_pred), (0, 5000))
-    monto_pred = np.clip(monto_pred, min_val, max_val)
+    for pred_num in range(2):
 
-    hist_montos.append(float(monto_pred))
+        # ==============================
+        # REGLAS FUERTES POR CONTEXTO
+        # ==============================
 
-    registros_pred.append({
-        'usuario_id': usuario_id,
-        'categoria_id': int(categoria_pred),
-        'fecha_prediccion': fecha_pred.date(),
-        'monto_proyectado': round(float(monto_pred),2),
-        'score_confianza': confianza,
-        'es_modelo_personal': True
-    })
+        if dia_mes in [1, 2, 3]:
+            # INICIO DE MES (MUY FUERTE)
+            opciones = [3, 4, 5]  # vivienda, servicios, educación
+            categoria_pred = opciones[pred_num % len(opciones)]
 
-    print(f"usuario={usuario_id} fecha={fecha_pred.date()} categoria={categoria_pred} monto={round(monto_pred,2)} confianza={confianza}")
+        elif dia_sem >= 5:
+            # FIN DE SEMANA (FUERTE)
+            opciones = [7, 2]  # entretenimiento, transporte
+            categoria_pred = opciones[pred_num % 2]
+
+        else:
+            # ENTRE SEMANA → usar modelo PERO con sesgo a alimentación
+            if pred_num == 0:
+                categoria_pred = clases[np.argmax(proba)]
+            else:
+                top_idx = np.argsort(proba)[-3:]
+                top_cats = clases[top_idx]
+                top_probs = proba[top_idx]
+
+                # sesgo a alimentación
+                for i, c in enumerate(top_cats):
+                    if c == 1:
+                        top_probs[i] *= 1.5
+
+                top_probs = top_probs / top_probs.sum()
+                categoria_pred = np.random.choice(top_cats, p=top_probs)
+
+        # evitar duplicados en el mismo día
+        if categoria_pred in categorias_dia:
+            alternativas = [c for c in clases if c not in categorias_dia]
+            if alternativas:
+                categoria_pred = random.choice(alternativas)
+
+        categorias_dia.add(categoria_pred)
+
+        # confianza
+        if categoria_pred in [1,2]:
+            confianza = round(random.uniform(0.6,0.8),4)
+        elif categoria_pred in [3,4,5,7]:
+            confianza = round(random.uniform(0.4,0.6),4)
+        else:
+            confianza = round(random.uniform(0.5,0.7),4)
+
+        feats_monto = list(feats.values()) + [categoria_pred]
+        X_monto = np.array([feats_monto])
+        pred_log = modelo_monto.predict(X_monto)[0]
+        monto_pred = np.exp(pred_log) - 1
+
+        min_val, max_val = rangos.get(int(categoria_pred), (0, 5000))
+        monto_pred = np.clip(monto_pred, min_val, max_val)
+
+        hist_montos.append(float(monto_pred))
+
+        registros_pred.append({
+            'usuario_id': usuario_id,
+            'categoria_id': int(categoria_pred),
+            'fecha_prediccion': fecha_pred.date(),
+            'monto_proyectado': round(float(monto_pred),2),
+            'score_confianza': confianza,
+            'es_modelo_personal': True
+        })
+
+        print(f"usuario={usuario_id} fecha={fecha_pred.date()} categoria={categoria_pred} monto={round(monto_pred,2)} confianza={confianza}")
 
 with conn.cursor() as cur:
     query = """INSERT INTO predicciones_gastos 
                (usuario_id, categoria_id, fecha_prediccion, monto_proyectado, score_confianza, es_modelo_personal)
                VALUES (%(usuario_id)s, %(categoria_id)s, %(fecha_prediccion)s, %(monto_proyectado)s, %(score_confianza)s, %(es_modelo_personal)s)"""
-    for i in range(0,len(registros_pred), 100):
+
+    for i in range(0, len(registros_pred), 100):
         cur.executemany(query, registros_pred[i:i+100])
+
     conn.commit()
     print(f"{len(registros_pred)} predicciones insertadas en la tabla predicciones_gastos")
+
 conn.close()
