@@ -6,7 +6,7 @@
     android:layout_marginBottom="8dp"
     app:cardCornerRadius="12dp"
     app:cardElevation="0dp"
-    app:cardBackgroundColor="#FFFFFF"
+    app:cardBackgroundColor="#1A1829"
     app:contentPadding="12dp">
 
     <LinearLayout
@@ -27,7 +27,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Item"
-                android:textColor="#222222"
+                android:textColor="#FFFFFF"
                 android:textSize="15sp"
                 android:textStyle="bold"/>
                 
@@ -36,7 +36,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="~Hora - 00% probabilidad"
-                android:textColor="#777777"
+                android:textColor="#B0B0C0"
                 android:textSize="12sp"
                 android:layout_marginTop="2dp"/>
                 
@@ -47,7 +47,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Bs. 0.00"
-            android:textColor="#222222"
+            android:textColor="#FFFFFF"
             android:textSize="16sp"
             android:textStyle="bold"/>
             

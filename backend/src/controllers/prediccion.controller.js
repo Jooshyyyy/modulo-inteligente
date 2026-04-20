@@ -9,32 +9,36 @@ const obtenerPrediccionDia = async (req, res) => {
             return res.status(400).json({ mensaje: "Fecha es requerida (YYYY-MM-DD)" });
         }
 
-        let predDb = await Prediccion.obtenerPorDia(usuarioId, fecha);
-        
-        if (!predDb) {
+        const filas = await Prediccion.obtenerPorDia(usuarioId, fecha);
+
+        if (!filas || filas.length === 0) {
             return res.status(404).json({ mensaje: "No hay predicción disponible para esta fecha." });
         }
 
-        const total = parseFloat(predDb.monto_proyectado);
-        const mainCategory = predDb.categoria_nombre || "Categoría General";
-        const porcentajeConfianza = Math.floor(parseFloat(predDb.score_confianza) * 100);
-        
+        const total = filas.reduce((acc, r) => acc + Number(r.monto_proyectado || 0), 0);
+        const principal = filas[0];
+        const mainCategory = principal.categoria_nombre || "Categoría General";
+
         let nivel = "Patrón moderado (modelo de gasto)";
         if (total > 200) nivel = "Alerta de pico — gasto elevado proyectado";
         else if (total < 50) nivel = "Día tranquilo — baja actividad de gasto esperada";
 
+        const probabilidades = filas.map((r) => {
+            const m = Number(r.monto_proyectado || 0);
+            const pctDelDia = total > 0 ? Math.round((m / total) * 100) : 0;
+            return {
+                nombre: r.categoria_nombre || "Otros",
+                hora: "Durante el día",
+                porcentaje: pctDelDia,
+                monto: m.toFixed(2)
+            };
+        });
+
         const response = {
             total: total.toFixed(2),
             nivel: nivel,
-            diferenciaPrevia: `IA personal · confianza ~${porcentajeConfianza}% · categoría dominante inferida`,
-            probabilidades: [
-                { 
-                    nombre: `${mainCategory}`, 
-                    hora: "Durante el día", 
-                    porcentaje: porcentajeConfianza, 
-                    monto: total.toFixed(2) 
-                }
-            ]
+            diferenciaPrevia: `IA personal · ${filas.length} rubro(s) · mayor peso: ${mainCategory}`,
+            probabilidades
         };
 
         res.json(response);

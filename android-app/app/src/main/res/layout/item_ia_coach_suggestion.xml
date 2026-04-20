@@ -4,10 +4,10 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="10dp"
-    app:cardBackgroundColor="@color/surface_white"
+    app:cardBackgroundColor="#1A1829"
     app:cardCornerRadius="12dp"
-    app:cardElevation="2dp"
-    app:strokeColor="@color/divider"
+    app:cardElevation="0dp"
+    app:strokeColor="#6E56FF"
     app:strokeWidth="1dp">
 
     <LinearLayout
@@ -27,7 +27,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:textColor="@color/text_primary"
+                android:textColor="#FFFFFF"
                 android:textSize="14sp"
                 android:textStyle="bold" />
 
@@ -35,10 +35,10 @@
                 android:id="@+id/tvSuggestionBadge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="@color/bg_light"
+                android:background="#2A2A40"
                 android:paddingHorizontal="8dp"
                 android:paddingVertical="4dp"
-                android:textColor="@color/secondary_gold_dark"
+                android:textColor="#6E56FF"
                 android:textSize="12sp"
                 android:textStyle="bold" />
         </LinearLayout>
@@ -49,7 +49,35 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:lineSpacingExtra="2dp"
-            android:textColor="@color/text_secondary"
+            android:textColor="#B0B0C0"
             android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/tvSuggestionSavings"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:textColor="#7CFFB2"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/tvSuggestionProjected"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="#D0D0E0"
+            android:textSize="12sp"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/tvSuggestionContext"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="#8E8EA8"
+            android:textSize="12sp"
+            android:visibility="gone" />
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>
