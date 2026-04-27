@@ -95,12 +95,17 @@ const mapMeta = (row) => {
 const construirSugerencias = (detalleDias, resumenCats, montoRestanteMeta) => {
     const sugerencias = [];
     const porDia = agregarPrediccionesPorDia(detalleDias);
+    
+    const noMitigables = ['vivienda', 'servicio', 'educación', 'educacion'];
+    const esMitigable = (cat) => !noMitigables.some(n => (cat || '').toLowerCase().includes(n));
+
     const diasOrden = [...porDia.entries()]
         .map(([fecha, ent]) => ({
             fecha_prediccion: fecha,
             categoria_nombre: ent.topRow.categoria_nombre,
             monto_proyectado: ent.total
         }))
+        .filter(row => esMitigable(row.categoria_nombre))
         .sort((a, b) => Number(b.monto_proyectado || 0) - Number(a.monto_proyectado || 0));
 
     let prioridad = 1;
@@ -118,10 +123,18 @@ const construirSugerencias = (detalleDias, resumenCats, montoRestanteMeta) => {
                 : 0;
 
         const etiquetaFecha = formatFechaLargaEs(fecha);
+        let sugerenciaAdicional = '';
+        const catLow = (row.categoria_nombre || '').toLowerCase();
+        if (catLow.includes('alimentación') || catLow.includes('alimentacion')) {
+            sugerenciaAdicional = ' (ej. cocinando en casa)';
+        } else if (catLow.includes('entretenimiento')) {
+            sugerenciaAdicional = ' (ej. buscando opciones gratis)';
+        }
+
         sugerencias.push({
             tipo: 'DIA',
             titulo: 'Recorte en día pico proyectado',
-            mensaje: `Si el ${etiquetaFecha} reduces un 20% el gasto total proyectado (rubro principal «${row.categoria_nombre}», día Bs. ${round2(
+            mensaje: `Si el ${etiquetaFecha} reduces un 20% el gasto total proyectado (rubro principal «${row.categoria_nombre}»${sugerenciaAdicional}, día Bs. ${round2(
                 monto
             )}), ahorrarías Bs. ${ahorro} y estarías un ${acercamiento}% más cerca de tu meta.`,
             categoria: row.categoria_nombre,
@@ -133,9 +146,9 @@ const construirSugerencias = (detalleDias, resumenCats, montoRestanteMeta) => {
         });
     }
 
-    const cats = [...resumenCats].sort(
-        (a, b) => Number(b.monto_total || 0) - Number(a.monto_total || 0)
-    );
+    const cats = [...resumenCats]
+        .filter(c => esMitigable(c.categoria_nombre))
+        .sort((a, b) => Number(b.monto_total || 0) - Number(a.monto_total || 0));
     for (let i = 0; i < Math.min(3, cats.length); i++) {
         const c = cats[i];
         const totalCat = Number(c.monto_total || 0);

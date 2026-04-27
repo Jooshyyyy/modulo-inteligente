@@ -466,20 +466,17 @@
                             android:textColor="#A0A0A0"
                             android:textSize="12sp" />
 
-                        <androidx.cardview.widget.CardView
+                        <com.github.mikephil.charting.charts.PieChart
+                            android:id="@+id/pieChartCategorias"
                             android:layout_width="match_parent"
-                            android:layout_height="20dp"
-                            android:layout_marginTop="16dp"
-                            app:cardCornerRadius="10dp"
-                            app:cardElevation="0dp"
-                            app:cardBackgroundColor="#1A1829">
-                            
-                            <LinearLayout
-                                android:id="@+id/llMonthlyChartBar"
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:orientation="horizontal" />
-                        </androidx.cardview.widget.CardView>
+                            android:layout_height="250dp"
+                            android:layout_marginTop="16dp" />
+
+                        <com.github.mikephil.charting.charts.RadarChart
+                            android:id="@+id/radarChartCategorias"
+                            android:layout_width="match_parent"
+                            android:layout_height="250dp"
+                            android:layout_marginTop="16dp" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -508,6 +505,56 @@
                             android:textSize="14sp"
                             android:textStyle="bold" />
 
+                        <HorizontalScrollView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:scrollbars="none">
+                            <com.google.android.material.chip.ChipGroup
+                                android:id="@+id/chipGroupSemanas"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                app:singleLine="true"
+                                app:singleSelection="true">
+
+                                <com.google.android.material.chip.Chip
+                                    android:id="@+id/chipSemana1"
+                                    style="@style/Widget.MaterialComponents.Chip.Filter"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    app:chipBackgroundColor="#1A1829"
+                                    android:textColor="#FFFFFF"
+                                    android:text="Semana 1" />
+
+                                <com.google.android.material.chip.Chip
+                                    android:id="@+id/chipSemana2"
+                                    style="@style/Widget.MaterialComponents.Chip.Filter"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    app:chipBackgroundColor="#1A1829"
+                                    android:textColor="#FFFFFF"
+                                    android:text="Semana 2" />
+
+                                <com.google.android.material.chip.Chip
+                                    android:id="@+id/chipSemana3"
+                                    style="@style/Widget.MaterialComponents.Chip.Filter"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    app:chipBackgroundColor="#1A1829"
+                                    android:textColor="#FFFFFF"
+                                    android:text="Semana 3" />
+
+                                <com.google.android.material.chip.Chip
+                                    android:id="@+id/chipSemana4"
+                                    style="@style/Widget.MaterialComponents.Chip.Filter"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    app:chipBackgroundColor="#1A1829"
+                                    android:textColor="#FFFFFF"
+                                    android:text="Semana 4+" />
+                            </com.google.android.material.chip.ChipGroup>
+                        </HorizontalScrollView>
+
                         <TextView
                             android:id="@+id/tvSelectedDayInsight"
                             android:layout_width="match_parent"
@@ -518,6 +565,18 @@
                             android:text="Tocá una categoría arriba o un día acá para ver el detalle."
                             android:textColor="#A0A0A0"
                             android:textSize="13sp" />
+
+                        <com.github.mikephil.charting.charts.LineChart
+                            android:id="@+id/lineChartDias"
+                            android:layout_width="match_parent"
+                            android:layout_height="200dp"
+                            android:layout_marginTop="12dp" />
+
+                        <com.github.mikephil.charting.charts.BarChart
+                            android:id="@+id/barChartSemanas"
+                            android:layout_width="match_parent"
+                            android:layout_height="200dp"
+                            android:layout_marginTop="12dp" />
 
                         <androidx.recyclerview.widget.RecyclerView
                             android:id="@+id/rvMonthlyDayList"
