@@ -24,6 +24,25 @@ import bo.edu.modulointeligente.ui.prediccion.CoachIndicatorAdapter
 import bo.edu.modulointeligente.ui.prediccion.CoachSuggestionAdapter
 import bo.edu.modulointeligente.ui.prediccion.MonthlyCategoryAdapter
 import bo.edu.modulointeligente.ui.prediccion.MonthlyDayAdapter
+import com.github.mikephil.charting.charts.BarChart
+import com.github.mikephil.charting.charts.LineChart
+import com.github.mikephil.charting.charts.PieChart
+import com.github.mikephil.charting.charts.RadarChart
+import com.github.mikephil.charting.components.XAxis
+import com.github.mikephil.charting.data.BarData
+import com.github.mikephil.charting.data.BarDataSet
+import com.github.mikephil.charting.data.BarEntry
+import com.github.mikephil.charting.data.Entry
+import com.github.mikephil.charting.data.LineData
+import com.github.mikephil.charting.data.LineDataSet
+import com.github.mikephil.charting.data.PieData
+import com.github.mikephil.charting.data.PieDataSet
+import com.github.mikephil.charting.data.PieEntry
+import com.github.mikephil.charting.data.RadarData
+import com.github.mikephil.charting.data.RadarDataSet
+import com.github.mikephil.charting.data.RadarEntry
+import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
+import com.github.mikephil.charting.formatter.ValueFormatter
 import kotlinx.coroutines.launch
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
@@ -54,6 +73,7 @@ class IAPrediccionActivity : BaseActivity() {
     private var categoriasMesCache: List<PrediccionSemanalCategoria> = emptyList()
     private var totalMesCache: Double = 0.0
     private var categoriaFiltro: String? = null
+    private var semanaFiltro: Int? = null
     private var textoInsightPredeterminado: String = ""
     private var metaActual: MetaFinanciera? = null
     private var gastoProyectadoMesActual: Double? = null
@@ -104,6 +124,17 @@ class IAPrediccionActivity : BaseActivity() {
     }
 
     private fun setupRecyclerUis() {
+        findViewById<ChipGroup>(R.id.chipGroupSemanas)?.setOnCheckedStateChangeListener { _, checkedIds ->
+            semanaFiltro = when (checkedIds.firstOrNull()) {
+                R.id.chipSemana1 -> 1
+                R.id.chipSemana2 -> 2
+                R.id.chipSemana3 -> 3
+                R.id.chipSemana4 -> 4
+                else -> null
+            }
+            renderDiasDelMes()
+        }
+
         indicatorAdapter = CoachIndicatorAdapter()
         suggestionAdapter = CoachSuggestionAdapter(decimalFormat) { s ->
             MaterialAlertDialogBuilder(this)
@@ -148,11 +179,24 @@ class IAPrediccionActivity : BaseActivity() {
         val fecha = formatDayLabel(dia.fecha)
         val base = "Día: $fecha\nCategoría dominante: ${dia.categoria}\nGasto proyectado: Bs. ${decimalFormat.format(dia.monto)}\n"
         val meta = metaActual
+
+        val categoriaLower = dia.categoria.lowercase()
+        val esNoMitigable = categoriaLower.contains("vivienda") || categoriaLower.contains("servicio") || categoriaLower.contains("educación") || categoriaLower.contains("educacion")
+
         val extra =
-            if (meta != null && meta.montoObjetivo > 0) {
+            if (esNoMitigable) {
+                "\nConsejo: Estos gastos son fijos o esenciales y no se sugiere reducirlos. ¡Enfocate en otros picos!"
+            } else if (meta != null && meta.montoObjetivo > 0) {
                 val ahorro = (dia.monto * 0.2).coerceAtLeast(0.0)
                 val impacto = if (meta.montoRestante > 0) (ahorro / meta.montoRestante) * 100 else 0.0
-                "\nConsejo: si reducís un 20% ese día, liberarías Bs. ${decimalFormat.format(ahorro)} (~${decimalFormat.format(impacto)}% de lo que te falta)."
+                val sugerenciaEspecifica = if (categoriaLower.contains("alimentación") || categoriaLower.contains("alimentacion")) {
+                    " (ej. cociná en casa)"
+                } else if (categoriaLower.contains("entretenimiento")) {
+                    " (ej. buscá planes gratis o más baratos)"
+                } else {
+                    ""
+                }
+                "\nConsejo: si reducís un 20% ese día$sugerenciaEspecifica, liberarías Bs. ${decimalFormat.format(ahorro)} (~${decimalFormat.format(impacto)}% de lo que te falta)."
             } else {
                 "\nConsejo: probá poner una meta para que el coach mida impacto real (en Bs. y %)."
             }
@@ -383,7 +427,7 @@ class IAPrediccionActivity : BaseActivity() {
         val monthTitle = findViewById<TextView>(R.id.tvMonthTitle)
         val monthTotal = findViewById<TextView>(R.id.tvMonthTotal)
         val insight = findViewById<TextView>(R.id.tvSelectedDayInsight)
-        val chartBar = findViewById<android.widget.LinearLayout>(R.id.llMonthlyChartBar)
+        val pieChartCategorias = findViewById<PieChart>(R.id.pieChartCategorias)
 
         val mesApi = monthApiFormat.format(monthCalendar.time)
         monthTitle.text = monthDisplayFormat.format(monthCalendar.time).replaceFirstChar { it.uppercase() }
@@ -396,8 +440,10 @@ class IAPrediccionActivity : BaseActivity() {
                     insight.text = "Sin predicciones disponibles para este mes."
                     diasMesCache = emptyList()
                     categoriaFiltro = null
+                    semanaFiltro = null
+                    findViewById<ChipGroup>(R.id.chipGroupSemanas)?.clearCheck()
                     textoInsightPredeterminado = insight.text.toString()
-                    chartBar.removeAllViews()
+                    pieChartCategorias.clear()
                     categoryAdapter.submit(emptyList(), 0.0, null)
                     dayAdapter.submit(emptyList())
                     return@launch
@@ -410,21 +456,40 @@ class IAPrediccionActivity : BaseActivity() {
                 categoriasMesCache = categorias
                 totalMesCache = data.total
                 categoriaFiltro = null
+                semanaFiltro = null
+                findViewById<ChipGroup>(R.id.chipGroupSemanas)?.clearCheck()
                 monthTotal.text = if (data.total.isNaN()) "Bs. 0.00" else "Bs. ${decimalFormat.format(data.total)}"
-                chartBar.removeAllViews()
+                
+                val pieEntries = ArrayList<PieEntry>()
+                val colors = ArrayList<Int>()
 
                 categorias.forEach { categoria ->
-                    if (categoria.monto.isNaN()) return@forEach
-                    val percent = if (data.total > 0.0 && !data.total.isNaN()) ((categoria.monto / data.total) * 100).roundToInt() else 0
-                    val segment = View(this@IAPrediccionActivity)
-                    val safeWeight = if (percent <= 0) 0.5f else percent.toFloat()
-                    segment.layoutParams = android.widget.LinearLayout.LayoutParams(
-                        0,
-                        android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
-                        safeWeight
-                    )
-                    segment.setBackgroundColor(parseCategoryColor(categoria.colorHex))
-                    chartBar.addView(segment)
+                    if (!categoria.monto.isNaN() && categoria.monto > 0) {
+                        pieEntries.add(PieEntry(categoria.monto.toFloat(), categoria.categoria))
+                        colors.add(parseCategoryColor(categoria.colorHex))
+                    }
+                }
+
+                if (pieEntries.isNotEmpty()) {
+                    val dataSet = PieDataSet(pieEntries, "")
+                    dataSet.colors = colors
+                    dataSet.setDrawValues(false)
+                    dataSet.sliceSpace = 3f
+                    dataSet.selectionShift = 5f
+
+                    val pieData = PieData(dataSet)
+                    pieChartCategorias.data = pieData
+                    pieChartCategorias.description.isEnabled = false
+                    pieChartCategorias.legend.isEnabled = false
+                    pieChartCategorias.isDrawHoleEnabled = true
+                    pieChartCategorias.holeRadius = 58f
+                    pieChartCategorias.transparentCircleRadius = 61f
+                    pieChartCategorias.setHoleColor(android.graphics.Color.TRANSPARENT)
+                    pieChartCategorias.setDrawEntryLabels(false)
+                    pieChartCategorias.animateY(1000)
+                    pieChartCategorias.invalidate()
+                } else {
+                    pieChartCategorias.clear()
                 }
 
                 textoInsightPredeterminado = if (dias.isEmpty()) {
@@ -443,8 +508,12 @@ class IAPrediccionActivity : BaseActivity() {
                 categoriasMesCache = emptyList()
                 totalMesCache = 0.0
                 categoriaFiltro = null
+                semanaFiltro = null
+                findViewById<ChipGroup>(R.id.chipGroupSemanas)?.clearCheck()
                 textoInsightPredeterminado = insight.text.toString()
-                chartBar.removeAllViews()
+                pieChartCategorias.clear()
+                findViewById<RadarChart>(R.id.radarChartCategorias).clear()
+                findViewById<BarChart>(R.id.barChartSemanas).clear()
                 categoryAdapter.submit(emptyList(), 0.0, null)
                 dayAdapter.submit(emptyList())
             }
@@ -453,17 +522,167 @@ class IAPrediccionActivity : BaseActivity() {
 
     private fun renderDiasDelMes() {
         val insight = findViewById<TextView>(R.id.tvSelectedDayInsight)
-        val dias =
-            if (categoriaFiltro == null) diasMesCache else diasMesCache.filter { it.categoria == categoriaFiltro }
+        var dias = diasMesCache
+        
         if (categoriaFiltro != null) {
+            dias = dias.filter { it.categoria == categoriaFiltro }
+        }
+        
+        if (semanaFiltro != null) {
+            dias = dias.filter { 
+                val date = parseApiDate(it.fecha)
+                if (date != null) {
+                    val cal = Calendar.getInstance()
+                    cal.time = date
+                    val weekOfMonth = cal.get(Calendar.WEEK_OF_MONTH)
+                    if (semanaFiltro == 4) weekOfMonth >= 4 else weekOfMonth == semanaFiltro
+                } else true
+            }
+        }
+
+        if (categoriaFiltro != null || semanaFiltro != null) {
             val sub = dias.sumOf { d -> if (d.monto.isNaN()) 0.0 else d.monto }
-            insight.text =
-                "Filtrando: $categoriaFiltro · subtotal visible Bs. ${decimalFormat.format(sub)}. Tocá la misma categoría para limpiar."
+            val filtroCatText = if (categoriaFiltro != null) "Categoría: $categoriaFiltro" else ""
+            val filtroSemText = if (semanaFiltro != null) "Semana: $semanaFiltro" else ""
+            val filtros = listOf(filtroCatText, filtroSemText).filter { it.isNotEmpty() }.joinToString(" · ")
+            insight.text = "Filtrando: $filtros · subtotal visible Bs. ${decimalFormat.format(sub)}. Tocá para limpiar."
         } else {
             insight.text = textoInsightPredeterminado
         }
-        dayAdapter.submit(dias)
+        val topDias = dias.sortedByDescending { it.monto }.take(3)
+        dayAdapter.submit(topDias)
         categoryAdapter.submit(categoriasMesCache, totalMesCache, categoriaFiltro)
+
+        val lineChartDias = findViewById<LineChart>(R.id.lineChartDias)
+        val entries = ArrayList<Entry>()
+        val labels = ArrayList<String>()
+
+        dias.forEachIndexed { index, dia ->
+            if (!dia.monto.isNaN()) {
+                entries.add(Entry(index.toFloat(), dia.monto.toFloat()))
+                val date = parseApiDate(dia.fecha)
+                val dayStr = if (date != null) SimpleDateFormat("dd/MM", Locale("es", "ES")).format(date) else ""
+                labels.add(dayStr)
+            }
+        }
+
+        if (entries.isNotEmpty()) {
+            val dataSet = LineDataSet(entries, "Gasto Diario")
+            dataSet.color = android.graphics.Color.parseColor("#6E56FF")
+            dataSet.valueTextColor = android.graphics.Color.WHITE
+            dataSet.lineWidth = 2f
+            dataSet.circleRadius = 4f
+            dataSet.setCircleColor(android.graphics.Color.parseColor("#6E56FF"))
+            dataSet.setDrawValues(false)
+            dataSet.mode = LineDataSet.Mode.CUBIC_BEZIER
+            dataSet.setDrawFilled(true)
+            dataSet.fillColor = android.graphics.Color.parseColor("#6E56FF")
+            dataSet.fillAlpha = 50
+
+            val lineData = LineData(dataSet)
+            lineChartDias.data = lineData
+            lineChartDias.description.isEnabled = false
+            lineChartDias.legend.isEnabled = false
+            
+            lineChartDias.xAxis.apply {
+                position = XAxis.XAxisPosition.BOTTOM
+                textColor = android.graphics.Color.parseColor("#A0A0A0")
+                setDrawGridLines(false)
+                granularity = 1f
+                valueFormatter = object : ValueFormatter() {
+                    override fun getFormattedValue(value: Float): String {
+                        val index = value.toInt()
+                        return if (index >= 0 && index < labels.size) labels[index] else ""
+                    }
+                }
+            }
+
+            lineChartDias.axisLeft.apply {
+                textColor = android.graphics.Color.parseColor("#A0A0A0")
+                setDrawGridLines(true)
+                gridColor = android.graphics.Color.parseColor("#2A2A40")
+                axisMinimum = 0f
+            }
+            lineChartDias.axisRight.isEnabled = false
+            lineChartDias.animateX(500)
+            lineChartDias.invalidate()
+        } else {
+            lineChartDias.clear()
+        }
+
+        // RadarChart Categorias
+        val radarChart = findViewById<RadarChart>(R.id.radarChartCategorias)
+        val radarEntries = ArrayList<RadarEntry>()
+        val radarLabels = ArrayList<String>()
+        categoriasMesCache.forEach { cat ->
+            if (cat.monto > 0 && !cat.monto.isNaN()) {
+                radarEntries.add(RadarEntry(cat.monto.toFloat()))
+                radarLabels.add(cat.categoria)
+            }
+        }
+        if (radarEntries.isNotEmpty()) {
+            val radarDataSet = RadarDataSet(radarEntries, "Categorías")
+            radarDataSet.color = android.graphics.Color.parseColor("#6E56FF")
+            radarDataSet.fillColor = android.graphics.Color.parseColor("#6E56FF")
+            radarDataSet.setDrawFilled(true)
+            radarDataSet.fillAlpha = 180
+            radarDataSet.lineWidth = 2f
+            val radarData = RadarData(radarDataSet)
+            radarChart.data = radarData
+            radarChart.xAxis.valueFormatter = IndexAxisValueFormatter(radarLabels)
+            radarChart.xAxis.textColor = android.graphics.Color.parseColor("#A0A0A0")
+            radarChart.xAxis.textSize = 10f
+            radarChart.yAxis.setDrawLabels(false)
+            radarChart.yAxis.axisMinimum = 0f
+            radarChart.legend.isEnabled = false
+            radarChart.description.isEnabled = false
+            radarChart.animateY(1000)
+            radarChart.invalidate()
+        } else {
+            radarChart.clear()
+        }
+
+        // BarChart Semanas
+        val barChart = findViewById<BarChart>(R.id.barChartSemanas)
+        val weekTotals = FloatArray(4)
+        diasMesCache.forEach { dia ->
+            val date = parseApiDate(dia.fecha)
+            if (date != null && !dia.monto.isNaN()) {
+                val cal = Calendar.getInstance()
+                cal.time = date
+                val w = cal.get(Calendar.WEEK_OF_MONTH) - 1
+                if (w in 0..3) {
+                    weekTotals[w] += dia.monto.toFloat()
+                } else if (w > 3) {
+                    weekTotals[3] += dia.monto.toFloat()
+                }
+            }
+        }
+        val barEntries = ArrayList<BarEntry>()
+        weekTotals.forEachIndexed { i, total ->
+            barEntries.add(BarEntry(i.toFloat(), total))
+        }
+        if (barEntries.any { it.y > 0 }) {
+            val barDataSet = BarDataSet(barEntries, "Gasto Semanal")
+            barDataSet.color = android.graphics.Color.parseColor("#7CFFB2")
+            barDataSet.valueTextColor = android.graphics.Color.WHITE
+            barDataSet.valueTextSize = 10f
+            val barData = BarData(barDataSet)
+            barChart.data = barData
+            barChart.xAxis.position = XAxis.XAxisPosition.BOTTOM
+            barChart.xAxis.textColor = android.graphics.Color.parseColor("#A0A0A0")
+            barChart.xAxis.valueFormatter = IndexAxisValueFormatter(listOf("Sem 1", "Sem 2", "Sem 3", "Sem 4+"))
+            barChart.xAxis.setDrawGridLines(false)
+            barChart.axisLeft.textColor = android.graphics.Color.parseColor("#A0A0A0")
+            barChart.axisLeft.axisMinimum = 0f
+            barChart.axisRight.isEnabled = false
+            barChart.legend.isEnabled = false
+            barChart.description.isEnabled = false
+            barChart.animateY(1000)
+            barChart.invalidate()
+        } else {
+            barChart.clear()
+        }
     }
 
     private fun formatDayLabel(rawDate: String): String {
