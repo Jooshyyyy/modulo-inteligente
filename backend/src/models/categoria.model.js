@@ -1,6 +1,15 @@
 const pool = require('../config/database');
 
 const Categoria = {
+    listar: async () => {
+        const r = await pool.query(
+            `SELECT id, nombre, COALESCE(color_hex, '#9E9E9E') AS color_hex
+             FROM categorias
+             ORDER BY nombre ASC`
+        );
+        return r.rows;
+    },
+
     // Obtener el ID numérico que maneja BD para una categoría dada por Python ('Vivienda' -> 3)
     obtenerIdPorNombre: async (nombreCategoria) => {
         try {

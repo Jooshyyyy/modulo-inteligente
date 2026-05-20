@@ -58,7 +58,12 @@ class CoachSuggestionAdapter(
         fun bind(item: IaSugerencia) {
             tvTitle.text = item.titulo
             tvBody.text = item.mensaje
-            tvBadge.text = "+${decimalFormat.format(item.porcentajeAcercamientoMeta)}% hacia la meta"
+            val badgeLabel = when (item.tipo) {
+                "CATEGORIA", "PRESUPUESTO" -> "Impacto en presupuesto"
+                "AHORRO" -> "Margen de ahorro"
+                else -> "Aporte al margen"
+            }
+            tvBadge.text = "$badgeLabel · ${decimalFormat.format(item.porcentajeAcercamientoMeta)}%"
 
             if (!item.montoAhorroSugerido.isNaN() && item.montoAhorroSugerido > 0) {
                 tvSav.visibility = View.VISIBLE

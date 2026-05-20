@@ -60,6 +60,9 @@ interface ApiService {
         @retrofit2.http.Query("mes") mes: String
     ): Response<PrediccionMensualResponse>
 
+    @GET("api/categorias")
+    suspend fun getCategorias(): Response<List<CategoriaItem>>
+
     @GET("api/metas/activa")
     suspend fun getMetaActiva(): Response<MetaActivaResponse>
 

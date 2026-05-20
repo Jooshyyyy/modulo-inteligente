@@ -165,39 +165,73 @@ data class PrediccionMensualResponse(
     val dias: List<PrediccionDetalleDia> = emptyList()
 )
 
-data class MetaFinanciera(
+data class CategoriaItem(
+    val id: Int,
+    val nombre: String,
+    val colorHex: String = "#9E9E9E"
+)
+
+data class LimiteCategoriaItem(
+    @SerializedName("categoria_id") val categoriaId: Int,
+    @SerializedName("tope_mensual") val topeMensual: Double
+)
+
+data class LimiteCategoriaPlan(
+    val categoriaId: Int = 0,
+    val categoriaNombre: String = "",
+    val topeMensual: Double = 0.0
+)
+
+data class PlanPresupuesto(
     val id: Int,
     val titulo: String,
-    val descripcion: String? = null,
-    val plantilla: String? = null,
-    val montoObjetivo: Double = 0.0,
-    val montoAcumulado: Double = 0.0,
-    val montoRestante: Double = 0.0,
-    val porcentajeCompletado: Double = 0.0,
-    val fechaLimite: String = "",
+    val tipo: String = "GENERAL",
+    val topeMensual: Double? = null,
+    val topeTotal: Double = 0.0,
+    val limites: List<LimiteCategoriaPlan> = emptyList(),
     val estado: String = ""
 )
 
+/** Alias de compatibilidad con respuestas que aún envían `meta`. */
+typealias MetaFinanciera = PlanPresupuesto
+
 data class MetaActivaResponse(
     val tieneMeta: Boolean,
-    val meta: MetaFinanciera? = null
+    val meta: PlanPresupuesto? = null,
+    val plan: PlanPresupuesto? = null
 )
 
 data class CrearMetaRequest(
     val titulo: String,
-    @SerializedName("monto_objetivo") val montoObjetivo: Double,
-    @SerializedName("fecha_limite") val fechaLimite: String,
-    val plantilla: String? = null,
-    val descripcion: String? = null
+    val tipo: String,
+    @SerializedName("tope_mensual") val topeMensual: Double? = null,
+    val limites: List<LimiteCategoriaItem>? = null
 )
 
 data class CrearMetaApiResponse(
     val mensaje: String,
-    val meta: MetaFinanciera
+    val meta: PlanPresupuesto? = null,
+    val plan: PlanPresupuesto? = null
 )
 
-data class ActualizarMetaProgresoRequest(
-    @SerializedName("monto_acumulado") val montoAcumulado: Double
+data class CategoriaEstadoPresupuesto(
+    val categoriaId: Int = 0,
+    val categoriaNombre: String = "",
+    val topeMensual: Double = 0.0,
+    val gastoProyectado: Double = 0.0,
+    val margen: Double = 0.0,
+    val exceso: Double = 0.0,
+    val usoPct: Double = 0.0
+)
+
+data class EstadoPresupuestoCoach(
+    val tope: Double = 0.0,
+    val gasto: Double = 0.0,
+    val margen: Double = 0.0,
+    val exceso: Double = 0.0,
+    val ahorroProyectado: Double = 0.0,
+    val usoPct: Double = 0.0,
+    val categoriasEstado: List<CategoriaEstadoPresupuesto> = emptyList()
 )
 
 data class IaCoachIndicador(
@@ -221,11 +255,13 @@ data class IaSugerencia(
 
 data class IaCoachResponse(
     val tieneMeta: Boolean,
-    val meta: MetaFinanciera? = null,
+    val meta: PlanPresupuesto? = null,
+    val plan: PlanPresupuesto? = null,
     val mes: String? = null,
     val gastoProyectadoMes: Double = 0.0,
     val diasConPrediccion: Int = 0,
     val narrativa: String,
     val indicadores: List<IaCoachIndicador> = emptyList(),
-    val sugerencias: List<IaSugerencia> = emptyList()
+    val sugerencias: List<IaSugerencia> = emptyList(),
+    val estadoPresupuesto: EstadoPresupuestoCoach? = null
 )
