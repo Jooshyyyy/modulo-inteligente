@@ -1,26 +1,19 @@
-const Meta = require('../models/meta.model');
+const Presupuesto = require('../models/presupuesto.model');
 const Prediccion = require('../models/prediccion.model');
 
 const round2 = (n) => Math.round(Number(n) * 100) / 100;
 
-/**
- * Normaliza un valor de fecha que puede venir como objeto Date de PostgreSQL
- * o como string ISO, y devuelve siempre "YYYY-MM-DD"
- */
 const normalizarFecha = (valor) => {
     if (!valor) return '';
     if (valor instanceof Date) {
-        // pg devuelve Date objects para columnas tipo date
         const y = valor.getFullYear();
         const m = String(valor.getMonth() + 1).padStart(2, '0');
         const d = String(valor.getDate()).padStart(2, '0');
         return `${y}-${m}-${d}`;
     }
     const s = String(valor);
-    // Si ya es ISO (contiene 'T' o tiene formato yyyy-mm-dd)
     if (s.includes('T')) return s.slice(0, 10);
     if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
-    // Fallback: intentar parsear
     const dt = new Date(s);
     if (isNaN(dt.getTime())) return '';
     const y = dt.getFullYear();
@@ -41,30 +34,19 @@ const formatFechaLargaEs = (valor) => {
     });
 };
 
-const diasHasta = (fechaLimiteStr) => {
-    const s = normalizarFecha(fechaLimiteStr);
-    if (!s) return 1;
-    const [y, m, d] = s.split('-').map((x) => parseInt(x, 10));
-    const lim = new Date(y, m - 1, d);
-    const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
-    lim.setHours(0, 0, 0, 0);
-    const ms = lim.getTime() - hoy.getTime();
-    return Math.max(1, Math.ceil(ms / 86400000));
-};
-
-/** Agrupa varias predicciones del mismo día (reparto por categoría) en un total y rubro principal. */
 const agregarPrediccionesPorDia = (detalleDias) => {
     const map = new Map();
     for (const r of detalleDias) {
         const fecha = normalizarFecha(r.fecha_prediccion);
         if (!fecha) continue;
         if (!map.has(fecha)) {
-            map.set(fecha, { total: 0, topRow: r });
+            map.set(fecha, { total: 0, topRow: r, porCategoria: new Map() });
         }
         const ent = map.get(fecha);
         const m = Number(r.monto_proyectado || 0);
         ent.total = round2(ent.total + m);
+        const cat = r.categoria_nombre || 'Otros';
+        ent.porCategoria.set(cat, round2((ent.porCategoria.get(cat) || 0) + m));
         if (m > Number(ent.topRow.monto_proyectado || 0)) {
             ent.topRow = r;
         }
@@ -72,185 +54,296 @@ const agregarPrediccionesPorDia = (detalleDias) => {
     return map;
 };
 
-const mapMeta = (row) => {
+const mapPlan = async (row) => {
     if (!row) return null;
-    const objetivo = Number(row.monto_objetivo);
-    const acum = Number(row.monto_acumulado || 0);
-    const restante = Math.max(0, round2(objetivo - acum));
-    const pct = objetivo > 0 ? Math.min(100, round2((acum / objetivo) * 100)) : 0;
+    const limites =
+        row.tipo === 'CATEGORIAS'
+            ? (await Presupuesto.obtenerLimitesPorPlan(row.id)).map((l) => ({
+                  categoriaId: l.categoria_id,
+                  categoriaNombre: l.categoria_nombre,
+                  topeMensual: round2(l.tope_mensual)
+              }))
+            : [];
+
+    const topeGeneral =
+        row.tipo === 'GENERAL' ? round2(row.tope_mensual) : round2(limites.reduce((s, l) => s + l.topeMensual, 0));
+
     return {
         id: row.id,
         titulo: row.titulo,
-        descripcion: row.descripcion,
-        plantilla: row.plantilla,
-        montoObjetivo: round2(objetivo),
-        montoAcumulado: round2(acum),
-        montoRestante: restante,
-        porcentajeCompletado: pct,
-        fechaLimite: normalizarFecha(row.fecha_limite) || 'sin fecha',
+        tipo: row.tipo,
+        topeMensual: row.tipo === 'GENERAL' ? round2(row.tope_mensual) : null,
+        topeTotal: topeGeneral,
+        limites,
         estado: row.estado
     };
 };
 
-const construirSugerencias = (detalleDias, resumenCats, montoRestanteMeta) => {
-    const sugerencias = [];
-    const porDia = agregarPrediccionesPorDia(detalleDias);
-    
-    const noMitigables = ['vivienda', 'servicio', 'educación', 'educacion'];
-    const esMitigable = (cat) => !noMitigables.some(n => (cat || '').toLowerCase().includes(n));
+const nombreCatNorm = (s) => (s || 'Otros').trim().toLowerCase();
 
-    const diasOrden = [...porDia.entries()]
-        .map(([fecha, ent]) => ({
-            fecha_prediccion: fecha,
-            categoria_nombre: ent.topRow.categoria_nombre,
-            monto_proyectado: ent.total
-        }))
-        .filter(row => esMitigable(row.categoria_nombre))
-        .sort((a, b) => Number(b.monto_proyectado || 0) - Number(a.monto_proyectado || 0));
+const construirEstadoPresupuesto = (plan, resumenCats, gastoProyectadoMes) => {
+    const proyPorCat = new Map();
+    for (const c of resumenCats) {
+        proyPorCat.set(nombreCatNorm(c.categoria_nombre), Number(c.monto_total || 0));
+    }
+
+    if (plan.tipo === 'GENERAL') {
+        const tope = Number(plan.topeMensual || 0);
+        const gasto = round2(gastoProyectadoMes);
+        const margen = round2(tope - gasto);
+        const usoPct = tope > 0 ? Math.min(150, round2((gasto / tope) * 100)) : 0;
+        return {
+            tope,
+            gasto,
+            margen,
+            exceso: margen < 0 ? round2(-margen) : 0,
+            ahorroProyectado: margen > 0 ? margen : 0,
+            usoPct,
+            categoriasEstado: []
+        };
+    }
+
+    const categoriasEstado = [];
+    let gastoEnLimitadas = 0;
+    let topeSum = 0;
+
+    for (const lim of plan.limites) {
+        const key = nombreCatNorm(lim.categoriaNombre);
+        const proyectado = round2(proyPorCat.get(key) || 0);
+        const tope = Number(lim.topeMensual || 0);
+        const margen = round2(tope - proyectado);
+        const exceso = margen < 0 ? round2(-margen) : 0;
+        gastoEnLimitadas = round2(gastoEnLimitadas + proyectado);
+        topeSum = round2(topeSum + tope);
+        categoriasEstado.push({
+            categoriaId: lim.categoriaId,
+            categoriaNombre: lim.categoriaNombre,
+            topeMensual: tope,
+            gastoProyectado: proyectado,
+            margen,
+            exceso,
+            usoPct: tope > 0 ? Math.min(150, round2((proyectado / tope) * 100)) : 0
+        });
+    }
+
+    categoriasEstado.sort((a, b) => b.exceso - a.exceso || b.gastoProyectado - a.gastoProyectado);
+
+    const margenTotal = round2(topeSum - gastoEnLimitadas);
+    return {
+        tope: topeSum,
+        gasto: gastoEnLimitadas,
+        margen: margenTotal,
+        exceso: margenTotal < 0 ? round2(-margenTotal) : 0,
+        ahorroProyectado: margenTotal > 0 ? margenTotal : 0,
+        usoPct: topeSum > 0 ? Math.min(150, round2((gastoEnLimitadas / topeSum) * 100)) : 0,
+        categoriasEstado
+    };
+};
+
+const construirSugerencias = (plan, detalleDias, resumenCats, estado) => {
+    const sugerencias = [];
+    const noMitigables = ['vivienda', 'servicio', 'educación', 'educacion'];
+    const esMitigable = (cat) => !noMitigables.some((n) => (cat || '').toLowerCase().includes(n));
+
+    const limitePorCat = new Map();
+    if (plan.tipo === 'CATEGORIAS') {
+        for (const l of plan.limites) {
+            limitePorCat.set(nombreCatNorm(l.categoriaNombre), Number(l.topeMensual || 0));
+        }
+    }
 
     let prioridad = 1;
-    for (const row of diasOrden.slice(0, 6)) {
-        const fecha = normalizarFecha(row.fecha_prediccion);
-        if (!fecha) continue;
-        const monto = Number(row.monto_proyectado || 0);
-        if (monto < 5) continue;
 
-        const reduccion = 0.2;
-        const ahorro = round2(monto * reduccion);
-        const acercamiento =
-            montoRestanteMeta > 0
-                ? Math.min(100, round2((ahorro / montoRestanteMeta) * 100))
-                : 0;
-
-        const etiquetaFecha = formatFechaLargaEs(fecha);
-        let sugerenciaAdicional = '';
-        const catLow = (row.categoria_nombre || '').toLowerCase();
-        if (catLow.includes('alimentación') || catLow.includes('alimentacion')) {
-            sugerenciaAdicional = ' (ej. cocinando en casa)';
-        } else if (catLow.includes('entretenimiento')) {
-            sugerenciaAdicional = ' (ej. buscando opciones gratis)';
+    if (plan.tipo === 'CATEGORIAS') {
+        for (const cat of estado.categoriasEstado) {
+            if (cat.exceso < 5 || !esMitigable(cat.categoriaNombre)) continue;
+            const reduccion = round2(cat.exceso * 0.5);
+            const pct =
+                cat.topeMensual > 0 ? Math.min(100, round2((reduccion / cat.exceso) * 100)) : 0;
+            sugerencias.push({
+                tipo: 'CATEGORIA',
+                titulo: `Tope superado en ${cat.categoriaNombre}`,
+                mensaje: `Proyectamos Bs. ${cat.gastoProyectado} en «${cat.categoriaNombre}» y tu tope es Bs. ${cat.topeMensual} (exceso Bs. ${cat.exceso}). Recortando la mitad del exceso liberarías Bs. ${reduccion} y volverías al ${pct}% del límite.`,
+                categoria: cat.categoriaNombre,
+                fecha: null,
+                montoProyectado: cat.gastoProyectado,
+                montoAhorroSugerido: reduccion,
+                porcentajeAcercamientoMeta: pct,
+                prioridad: prioridad++
+            });
         }
+    } else if (estado.exceso >= 5) {
+        const reduccion = round2(estado.exceso * 0.3);
+        const pct =
+            estado.tope > 0 ? Math.min(100, round2((reduccion / estado.exceso) * 100)) : 0;
+        sugerencias.push({
+            tipo: 'PRESUPUESTO',
+            titulo: 'Gasto total por encima del tope',
+            mensaje: `El modelo proyecta Bs. ${estado.gasto} este mes y tu tope general es Bs. ${estado.tope} (exceso Bs. ${estado.exceso}). Un recorte del 30% sobre el exceso (Bs. ${reduccion}) te devolvería margen de ahorro.`,
+            categoria: null,
+            fecha: null,
+            montoProyectado: estado.gasto,
+            montoAhorroSugerido: reduccion,
+            porcentajeAcercamientoMeta: pct,
+            prioridad: prioridad++
+        });
+    }
+
+    const porDia = agregarPrediccionesPorDia(detalleDias);
+    const diasOrden = [...porDia.entries()]
+        .map(([fecha, ent]) => ({ fecha, ent }))
+        .filter(({ ent }) => esMitigable(ent.topRow.categoria_nombre))
+        .sort((a, b) => b.ent.total - a.ent.total);
+
+    for (const { fecha, ent } of diasOrden.slice(0, 5)) {
+        const catTop = ent.topRow.categoria_nombre || 'Otros';
+        let relevante = true;
+        let topeRef = estado.tope;
+        let proyCat = ent.total;
+
+        if (plan.tipo === 'CATEGORIAS') {
+            const topeCat = limitePorCat.get(nombreCatNorm(catTop));
+            if (topeCat == null) continue;
+            topeRef = topeCat;
+            proyCat = ent.porCategoria.get(catTop) || ent.total;
+            const catEst = estado.categoriasEstado.find(
+                (c) => nombreCatNorm(c.categoriaNombre) === nombreCatNorm(catTop)
+            );
+            if (!catEst || catEst.exceso < 1) continue;
+        } else if (estado.margen >= 0) {
+            continue;
+        }
+
+        const monto = round2(ent.total);
+        if (monto < 5) continue;
+        const ahorro = round2(Math.min(monto * 0.2, estado.exceso > 0 ? estado.exceso * 0.15 : monto * 0.2));
+        const acercamiento =
+            topeRef > 0 ? Math.min(100, round2((ahorro / Math.max(1, estado.exceso || topeRef)) * 100)) : 0;
 
         sugerencias.push({
             tipo: 'DIA',
-            titulo: 'Recorte en día pico proyectado',
-            mensaje: `Si el ${etiquetaFecha} reduces un 20% el gasto total proyectado (rubro principal «${row.categoria_nombre}»${sugerenciaAdicional}, día Bs. ${round2(
-                monto
-            )}), ahorrarías Bs. ${ahorro} y estarías un ${acercamiento}% más cerca de tu meta.`,
-            categoria: row.categoria_nombre,
+            titulo: 'Día pico dentro de tu presupuesto',
+            mensaje: `El ${formatFechaLargaEs(fecha)} el rubro «${catTop}» concentra gasto (día Bs. ${monto}). Un recorte del 20% ese día liberaría Bs. ${ahorro} hacia tu margen de ahorro.`,
+            categoria: catTop,
             fecha,
-            montoProyectado: round2(monto),
+            montoProyectado: monto,
             montoAhorroSugerido: ahorro,
             porcentajeAcercamientoMeta: acercamiento,
             prioridad: prioridad++
         });
     }
 
-    const cats = [...resumenCats]
-        .filter(c => esMitigable(c.categoria_nombre))
-        .sort((a, b) => Number(b.monto_total || 0) - Number(a.monto_total || 0));
-    for (let i = 0; i < Math.min(3, cats.length); i++) {
-        const c = cats[i];
-        const totalCat = Number(c.monto_total || 0);
-        if (totalCat < 10) continue;
-        const ahorro = round2(totalCat * 0.1);
-        const acercamiento =
-            montoRestanteMeta > 0
-                ? Math.min(100, round2((ahorro / montoRestanteMeta) * 100))
-                : 0;
+    if (estado.ahorroProyectado >= 10 && sugerencias.length < 3) {
         sugerencias.push({
-            tipo: 'CATEGORIA',
-            titulo: 'Menos presión en una categoría',
-            mensaje: `Bajando un 10% lo proyectado en «${c.categoria_nombre}» este mes (Bs. ${round2(
-                totalCat
-            )}), liberarías Bs. ${ahorro} (~${acercamiento}% más cerca de tu meta).`,
-            categoria: c.categoria_nombre,
+            tipo: 'AHORRO',
+            titulo: 'Vas dentro del presupuesto',
+            mensaje: `Si mantienes el ritmo proyectado (Bs. ${estado.gasto} de Bs. ${estado.tope}), podrías ahorrar Bs. ${estado.ahorroProyectado} este mes. Considerá apartar ese monto al inicio de la quincena.`,
+            categoria: null,
             fecha: null,
-            montoProyectado: round2(totalCat),
-            montoAhorroSugerido: ahorro,
-            porcentajeAcercamientoMeta: acercamiento,
+            montoProyectado: estado.gasto,
+            montoAhorroSugerido: estado.ahorroProyectado,
+            porcentajeAcercamientoMeta: 100,
             prioridad: prioridad++
         });
     }
 
-    sugerencias.sort(
-        (a, b) => b.porcentajeAcercamientoMeta - a.porcentajeAcercamientoMeta
-    );
+    sugerencias.sort((a, b) => {
+        if (b.tipo === 'CATEGORIA' && a.tipo !== 'CATEGORIA') return 1;
+        if (a.tipo === 'CATEGORIA' && b.tipo !== 'CATEGORIA') return -1;
+        return b.montoAhorroSugerido - a.montoAhorroSugerido;
+    });
     return sugerencias.slice(0, 8);
 };
 
 const obtenerMetaActiva = async (req, res) => {
     try {
-        const row = await Meta.obtenerActiva(req.usuario.id);
+        const row = await Presupuesto.obtenerActivo(req.usuario.id);
         if (!row) {
-            return res.json({ tieneMeta: false, meta: null });
+            return res.json({ tieneMeta: false, meta: null, plan: null });
         }
-        res.json({ tieneMeta: true, meta: mapMeta(row) });
+        const plan = await mapPlan(row);
+        res.json({ tieneMeta: true, meta: plan, plan });
     } catch (e) {
-        console.error('Meta activa:', e);
-        res.status(500).json({ mensaje: 'Error al obtener la meta.' });
+        console.error('Plan activo:', e);
+        res.status(500).json({ mensaje: 'Error al obtener el plan de presupuesto.' });
     }
 };
 
 const crearMeta = async (req, res) => {
     try {
-        const { titulo, monto_objetivo, fecha_limite, plantilla, descripcion } = req.body;
-        if (!titulo || monto_objetivo == null || !fecha_limite) {
+        const { titulo, tipo, tope_mensual, limites } = req.body;
+        const tipoPlan = String(tipo || '').toUpperCase();
+        if (!['GENERAL', 'CATEGORIAS'].includes(tipoPlan)) {
             return res.status(400).json({
-                mensaje: 'titulo, monto_objetivo y fecha_limite son obligatorios.'
+                mensaje: 'tipo debe ser GENERAL o CATEGORIAS.'
             });
         }
-        const monto = Number(monto_objetivo);
-        if (!Number.isFinite(monto) || monto <= 0) {
-            return res.status(400).json({ mensaje: 'monto_objetivo inválido.' });
+
+        const tituloFinal = (titulo && String(titulo).trim()) || 'Mi plan de ahorro';
+
+        if (tipoPlan === 'GENERAL') {
+            const tope = Number(tope_mensual);
+            if (!Number.isFinite(tope) || tope <= 0) {
+                return res.status(400).json({ mensaje: 'tope_mensual inválido para presupuesto general.' });
+            }
+            const row = await Presupuesto.crear(req.usuario.id, {
+                titulo: tituloFinal.slice(0, 120),
+                tipo: 'GENERAL',
+                tope_mensual: tope,
+                limites: []
+            });
+            const plan = await mapPlan(row);
+            return res.status(201).json({ mensaje: 'Plan de presupuesto activado.', meta: plan, plan });
         }
 
-        await Meta.pausarActivas(req.usuario.id);
-        const row = await Meta.crear(req.usuario.id, {
-            titulo: String(titulo).slice(0, 120),
-            descripcion: descripcion ? String(descripcion).slice(0, 2000) : null,
-            plantilla: plantilla ? String(plantilla).slice(0, 40) : null,
-            monto_objetivo: monto,
-            fecha_limite: String(fecha_limite).slice(0, 10)
-        });
+        const lista = Array.isArray(limites) ? limites : [];
+        if (lista.length === 0) {
+            return res.status(400).json({
+                mensaje: 'Indica al menos una categoría con tope_mensual.'
+            });
+        }
+        const normalizados = [];
+        for (const item of lista) {
+            const cid = parseInt(item.categoria_id, 10);
+            const tope = Number(item.tope_mensual);
+            if (!Number.isFinite(cid) || !Number.isFinite(tope) || tope <= 0) continue;
+            normalizados.push({ categoria_id: cid, tope_mensual: tope });
+        }
+        if (normalizados.length === 0) {
+            return res.status(400).json({ mensaje: 'Límites por categoría inválidos.' });
+        }
 
-        res.status(201).json({ mensaje: 'Meta creada.', meta: mapMeta(row) });
+        const row = await Presupuesto.crear(req.usuario.id, {
+            titulo: tituloFinal.slice(0, 120),
+            tipo: 'CATEGORIAS',
+            tope_mensual: null,
+            limites: normalizados
+        });
+        const plan = await mapPlan(row);
+        res.status(201).json({ mensaje: 'Límites por categoría activados.', meta: plan, plan });
     } catch (e) {
-        console.error('Crear meta:', e);
-        res.status(500).json({ mensaje: 'Error al crear la meta.' });
+        console.error('Crear plan:', e);
+        res.status(500).json({ mensaje: 'Error al guardar el plan.' });
     }
 };
 
 const actualizarProgreso = async (req, res) => {
-    try {
-        const metaId = parseInt(req.params.id, 10);
-        const { monto_acumulado } = req.body;
-        if (!Number.isFinite(metaId) || monto_acumulado == null) {
-            return res.status(400).json({ mensaje: 'Datos inválidos.' });
-        }
-        const ac = Math.max(0, Number(monto_acumulado));
-        const row = await Meta.actualizarAcumulado(req.usuario.id, metaId, ac);
-        if (!row) {
-            return res.status(404).json({ mensaje: 'Meta no encontrada.' });
-        }
-        res.json({ mensaje: 'Progreso actualizado.', meta: mapMeta(row) });
-    } catch (e) {
-        console.error('Progreso meta:', e);
-        res.status(500).json({ mensaje: 'Error al actualizar progreso.' });
-    }
+    res.status(410).json({
+        mensaje: 'El progreso manual ya no aplica: el ahorro se mide contra el presupuesto y las predicciones.'
+    });
 };
 
 const pausarMeta = async (req, res) => {
     try {
-        const metaId = parseInt(req.params.id, 10);
-        const row = await Meta.pausar(req.usuario.id, metaId);
+        const planId = parseInt(req.params.id, 10);
+        const row = await Presupuesto.pausar(req.usuario.id, planId);
         if (!row) {
-            return res.status(404).json({ mensaje: 'Meta no encontrada.' });
+            return res.status(404).json({ mensaje: 'Plan no encontrado.' });
         }
-        res.json({ mensaje: 'Meta pausada.' });
+        res.json({ mensaje: 'Plan de presupuesto pausado.' });
     } catch (e) {
-        console.error('Pausar meta:', e);
-        res.status(500).json({ mensaje: 'Error al pausar la meta.' });
+        console.error('Pausar plan:', e);
+        res.status(500).json({ mensaje: 'Error al pausar el plan.' });
     }
 };
 
@@ -259,8 +352,8 @@ const obtenerIaCoach = async (req, res) => {
         const usuarioId = req.usuario.id;
         const mes = req.query.mes || new Date().toISOString().slice(0, 7);
 
-        const [metaRow, resumenCats, detalleDias] = await Promise.all([
-            Meta.obtenerActiva(usuarioId),
+        const [planRow, resumenCats, detalleDias] = await Promise.all([
+            Presupuesto.obtenerActivo(usuarioId),
             Prediccion.obtenerMesResumen(usuarioId, mes),
             Prediccion.obtenerMesPorDia(usuarioId, mes)
         ]);
@@ -271,86 +364,83 @@ const obtenerIaCoach = async (req, res) => {
         );
         const diasConPrediccion = porDiaMap.size;
 
-        if (!metaRow) {
+        if (!planRow) {
             return res.json({
                 tieneMeta: false,
                 meta: null,
+                plan: null,
                 mes,
                 gastoProyectadoMes,
                 diasConPrediccion,
                 narrativa:
-                    'Aún no tienes una meta activa. Cuando la definas, el coach cruza tus gastos proyectados con tu objetivo y te dirá qué día o categoría conviene recortar para acercarte con porcentajes concretos.',
+                    'Definí un tope de gasto mensual (general) o límites en categorías que elijas. El coach comparará tus predicciones con ese presupuesto y te dirá dónde recortar para ahorrar.',
                 indicadores: [],
-                sugerencias: []
+                sugerencias: [],
+                estadoPresupuesto: null
             });
         }
 
-        const meta = mapMeta(metaRow);
-        const montoRestante = meta.montoRestante;
-        const diasRest = diasHasta(meta.fechaLimite);
-        const ritmoDiario = montoRestante > 0 ? round2(montoRestante / diasRest) : 0;
+        const plan = await mapPlan(planRow);
+        const estado = construirEstadoPresupuesto(plan, resumenCats, gastoProyectadoMes);
 
-        let topDia = { m: 0, r: null };
-        for (const [fecha, ent] of porDiaMap) {
-            if (ent.total > topDia.m) {
-                topDia = {
-                    m: ent.total,
-                    r: {
-                        fecha_prediccion: fecha,
-                        categoria_nombre: ent.topRow.categoria_nombre
-                    }
-                };
-            }
-        }
+        let narrativa = `Plan «${plan.titulo}» (`;
+        narrativa +=
+            plan.tipo === 'GENERAL'
+                ? `tope mensual Bs. ${estado.tope})`
+                : `${plan.limites.length} categoría(s), tope combinado Bs. ${estado.tope})`;
+        narrativa += `. `;
 
-        const pctDisplay = isNaN(meta.porcentajeCompletado) ? '0' : String(round2(meta.porcentajeCompletado));
-        const montoRestanteDisplay = isNaN(montoRestante) ? '0.00' : String(round2(montoRestante));
-        const fechaLimiteDisplay = meta.fechaLimite ? String(meta.fechaLimite).slice(0, 10) : 'sin fecha';
-        let narrativa = `Tu meta «${meta.titulo}» va al ${pctDisplay}% — faltan Bs. ${montoRestanteDisplay} antes del ${fechaLimiteDisplay}. `;
         if (diasConPrediccion === 0) {
             narrativa +=
-                'No hay predicciones guardadas para este mes; ejecuta el generador de predicciones para ver acciones personalizadas.';
+                'Sin predicciones este mes: ejecutá el generador de IA para ver margen de ahorro y alertas.';
         } else {
-            const gpDisplay = isNaN(gastoProyectadoMes) ? '0.00' : String(gastoProyectadoMes);
-            narrativa += `El modelo proyecta unos Bs. ${gpDisplay} de gasto en ${mes}. `;
-            if (topDia.r) {
-                narrativa += `El pico más alto aparece el ${formatFechaLargaEs(
-                    String(topDia.r.fecha_prediccion).slice(0, 10)
-                )} en «${topDia.r.categoria_nombre}».`;
+            const gastoRef =
+                plan.tipo === 'CATEGORIAS' ? estado.gasto : gastoProyectadoMes;
+            narrativa += `Gasto proyectado en alcance: Bs. ${gastoRef}. `;
+            if (estado.exceso > 0) {
+                narrativa += `Vas Bs. ${estado.exceso} por encima del presupuesto — el coach prioriza recortes ahí.`;
+            } else {
+                narrativa += `Margen de ahorro proyectado: Bs. ${estado.ahorroProyectado} (${estado.usoPct}% del tope usado).`;
             }
         }
 
-        const ritmoDiarioDisplay = isNaN(ritmoDiario) ? '0.00' : String(ritmoDiario);
-        const gpDisplay2 = isNaN(gastoProyectadoMes) ? '0.00' : String(gastoProyectadoMes);
         const indicadores = [
             {
-                clave: 'ritmo_diario',
-                etiqueta: 'Ritmo diario hacia la meta',
-                valor: `Bs. ${ritmoDiarioDisplay}`,
-                detalle: `Con ${diasRest} días hasta tu fecha límite`
+                clave: 'tope',
+                etiqueta: plan.tipo === 'GENERAL' ? 'Tope mensual' : 'Tope en categorías elegidas',
+                valor: `Bs. ${estado.tope}`,
+                detalle: plan.tipo === 'GENERAL' ? 'Presupuesto total del mes' : 'Suma de tus límites por rubro'
             },
             {
-                clave: 'gasto_proyectado_mes',
-                etiqueta: 'Gasto proyectado (mes)',
-                valor: `Bs. ${gpDisplay2}`,
-                detalle: 'Suma de predicciones diarias del modelo'
+                clave: 'gasto_proyectado',
+                etiqueta: 'Gasto proyectado (alcance)',
+                valor: `Bs. ${plan.tipo === 'CATEGORIAS' ? estado.gasto : gastoProyectadoMes}`,
+                detalle: 'Según predicciones del modelo'
+            },
+            {
+                clave: 'margen',
+                etiqueta: estado.exceso > 0 ? 'Exceso sobre tope' : 'Ahorro proyectado',
+                valor: `Bs. ${estado.exceso > 0 ? estado.exceso : estado.ahorroProyectado}`,
+                detalle: `${estado.usoPct}% del presupuesto comprometido`
             }
         ];
 
         const sugerencias =
             diasConPrediccion > 0
-                ? construirSugerencias(detalleDias, resumenCats, montoRestante)
+                ? construirSugerencias(plan, detalleDias, resumenCats, estado)
                 : [];
 
         res.json({
             tieneMeta: true,
-            meta,
+            meta: plan,
+            plan,
             mes,
             gastoProyectadoMes,
             diasConPrediccion,
             narrativa: narrativa.trim(),
             indicadores,
-            sugerencias
+            sugerencias,
+            estadoPresupuesto: estado
         });
     } catch (e) {
         console.error('IA coach:', e);

@@ -54,7 +54,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Paso 1 · Definí tu meta"
+                            android:text="Paso 1 · Tu presupuesto para ahorrar"
                             android:textColor="#FFFFFF"
                             android:textSize="16sp"
                             android:textStyle="bold" />
@@ -63,12 +63,12 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
-                            android:text="Sin una meta activa, el coach no puede medir el impacto de cada recorte. Elegí un objetivo concreto y fecha límite."
+                            android:text="Elegí un tope mensual general o límites solo en las categorías que quieras controlar. El coach cruza eso con las predicciones de gasto."
                             android:textColor="#A0A0A0"
                             android:textSize="12sp" />
 
                         <com.google.android.material.chip.ChipGroup
-                            android:id="@+id/chipGroupPlantilla"
+                            android:id="@+id/chipGroupTipoPlan"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="16dp"
@@ -76,49 +76,22 @@
                             app:singleSelection="true">
 
                             <com.google.android.material.chip.Chip
-                                android:id="@+id/chipVacaciones"
+                                android:id="@+id/chipPresupuestoGeneral"
                                 style="@style/Widget.MaterialComponents.Chip.Filter"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 app:chipBackgroundColor="#2A2A40"
                                 android:textColor="#FFFFFF"
-                                android:text="Vacaciones" />
+                                android:text="Tope mensual general" />
 
                             <com.google.android.material.chip.Chip
-                                android:id="@+id/chipEquipo"
+                                android:id="@+id/chipPresupuestoCategorias"
                                 style="@style/Widget.MaterialComponents.Chip.Filter"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 app:chipBackgroundColor="#2A2A40"
                                 android:textColor="#FFFFFF"
-                                android:text="Equipo / tech" />
-
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chipViaje"
-                                style="@style/Widget.MaterialComponents.Chip.Filter"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                app:chipBackgroundColor="#2A2A40"
-                                android:textColor="#FFFFFF"
-                                android:text="Viaje" />
-
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chipEmergencia"
-                                style="@style/Widget.MaterialComponents.Chip.Filter"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                app:chipBackgroundColor="#2A2A40"
-                                android:textColor="#FFFFFF"
-                                android:text="Emergencia" />
-
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chipOtro"
-                                style="@style/Widget.MaterialComponents.Chip.Filter"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                app:chipBackgroundColor="#2A2A40"
-                                android:textColor="#FFFFFF"
-                                android:text="Otro" />
+                                android:text="Límites por categoría" />
                         </com.google.android.material.chip.ChipGroup>
 
                         <com.google.android.material.textfield.TextInputLayout
@@ -129,7 +102,7 @@
                             android:layout_marginTop="16dp"
                             app:boxStrokeColor="#6E56FF"
                             android:textColorHint="#B0B0C0"
-                            android:hint="Nombre de la meta">
+                            android:hint="Nombre del plan (opcional)">
 
                             <com.google.android.material.textfield.TextInputEditText
                                 android:id="@+id/etMetaTitulo"
@@ -147,7 +120,7 @@
                             android:layout_marginTop="8dp"
                             app:boxStrokeColor="#6E56FF"
                             android:textColorHint="#B0B0C0"
-                            android:hint="Monto objetivo (Bs.)">
+                            android:hint="Tope de gasto mensual (Bs.)">
 
                             <com.google.android.material.textfield.TextInputEditText
                                 android:id="@+id/etMetaMonto"
@@ -157,43 +130,23 @@
                                 android:inputType="numberDecimal" />
                         </com.google.android.material.textfield.TextInputLayout>
 
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/tilMetaFecha"
-                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        <TextView
+                            android:id="@+id/tvHintCategorias"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:text="Marcá categorías y poné un tope en Bs. para cada una."
+                            android:textColor="#8E8EA8"
+                            android:textSize="12sp"
+                            android:visibility="gone" />
+
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/rvLimitesCategoria"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
-                            app:boxStrokeColor="#6E56FF"
-                            android:textColorHint="#B0B0C0"
-                            android:hint="Fecha límite (AAAA-MM-DD)">
-
-                            <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/etMetaFecha"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:textColor="#FFFFFF"
-                                android:inputType="text"
-                                android:hint="AAAA-MM-DD" />
-                        </com.google.android.material.textfield.TextInputLayout>
-
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/tilMetaAcumulado"
-                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            app:boxStrokeColor="#6E56FF"
-                            android:textColorHint="#B0B0C0"
-                            android:hint="Ya ahorrado a la fecha (Bs.)"
-                            android:visibility="gone">
-
-                            <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/etMetaAcumulado"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:textColor="#FFFFFF"
-                                android:inputType="numberDecimal" />
-                        </com.google.android.material.textfield.TextInputLayout>
+                            android:nestedScrollingEnabled="false"
+                            android:visibility="gone" />
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -208,18 +161,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:textColor="#FFFFFF"
-                                android:text="Pausar meta"
-                                android:visibility="gone" />
-
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btnActualizarProgreso"
-                                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginEnd="8dp"
-                                app:strokeColor="#FFFFFF"
-                                android:textColor="#FFFFFF"
-                                android:text="Guardar progreso"
+                                android:text="Quitar plan"
                                 android:visibility="gone" />
 
                             <com.google.android.material.button.MaterialButton
@@ -228,7 +170,7 @@
                                 android:layout_height="52dp"
                                 app:backgroundTint="#6E56FF"
                                 android:textColor="#FFFFFF"
-                                android:text="Establecer meta" />
+                                android:text="Activar presupuesto" />
                         </LinearLayout>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
@@ -372,7 +314,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="20dp"
-                            android:text="Recortes con impacto en tu meta"
+                            android:text="Recortes para volver a tu presupuesto"
                             android:textColor="#B0B0C0"
                             android:textSize="13sp"
                             android:textStyle="bold" />
@@ -462,7 +404,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
-                            android:text="Suma de lo que el modelo espera gastar en el mes. Usalo para comparar con tu meta y con los recortes del coach."
+                            android:text="Suma de lo que el modelo espera gastar en el mes. Comparalo con tu tope o límites por categoría."
                             android:textColor="#A0A0A0"
                             android:textSize="12sp" />
 

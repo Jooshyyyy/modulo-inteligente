@@ -24,6 +24,7 @@ import bo.edu.modulointeligente.ui.prediccion.CoachIndicatorAdapter
 import bo.edu.modulointeligente.ui.prediccion.CoachSuggestionAdapter
 import bo.edu.modulointeligente.ui.prediccion.MonthlyCategoryAdapter
 import bo.edu.modulointeligente.ui.prediccion.MonthlyDayAdapter
+import bo.edu.modulointeligente.ui.prediccion.PresupuestoCategoriaAdapter
 import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.charts.PieChart
@@ -68,20 +69,22 @@ class IAPrediccionActivity : BaseActivity() {
         "yyyy-MM-dd'T'HH:mm:ss'Z'"
     ).map { SimpleDateFormat(it, Locale.getDefault()) }
 
-    private var metaIdActual: Int? = null
+    private var planIdActual: Int? = null
     private var diasMesCache: List<PrediccionDetalleDia> = emptyList()
     private var categoriasMesCache: List<PrediccionSemanalCategoria> = emptyList()
     private var totalMesCache: Double = 0.0
     private var categoriaFiltro: String? = null
     private var semanaFiltro: Int? = null
     private var textoInsightPredeterminado: String = ""
-    private var metaActual: MetaFinanciera? = null
+    private var planActual: PlanPresupuesto? = null
+    private var estadoPresupuestoActual: EstadoPresupuestoCoach? = null
     private var gastoProyectadoMesActual: Double? = null
 
     private lateinit var indicatorAdapter: CoachIndicatorAdapter
     private lateinit var suggestionAdapter: CoachSuggestionAdapter
     private lateinit var categoryAdapter: MonthlyCategoryAdapter
     private lateinit var dayAdapter: MonthlyDayAdapter
+    private lateinit var presupuestoCategoriaAdapter: PresupuestoCategoriaAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -93,22 +96,19 @@ class IAPrediccionActivity : BaseActivity() {
         val navView = findViewById<NavigationView>(R.id.nav_view)
         setupDrawer(drawerLayout, navView)
 
-        findViewById<ChipGroup>(R.id.chipGroupPlantilla).check(R.id.chipVacaciones)
-        aplicarPlantillaChipDesdeChip()
+        findViewById<ChipGroup>(R.id.chipGroupTipoPlan).check(R.id.chipPresupuestoGeneral)
+        actualizarUiTipoPlan()
 
-        findViewById<TextInputEditText>(R.id.etMetaFecha).setText(fechaDefaultLimite())
-
-        findViewById<ChipGroup>(R.id.chipGroupPlantilla).setOnCheckedStateChangeListener { _, checkedIds ->
+        findViewById<ChipGroup>(R.id.chipGroupTipoPlan).setOnCheckedStateChangeListener { _, checkedIds ->
             if (checkedIds.isEmpty()) {
-                findViewById<ChipGroup>(R.id.chipGroupPlantilla).check(R.id.chipVacaciones)
+                findViewById<ChipGroup>(R.id.chipGroupTipoPlan).check(R.id.chipPresupuestoGeneral)
                 return@setOnCheckedStateChangeListener
             }
-            aplicarPlantillaChipDesdeChip()
+            actualizarUiTipoPlan()
         }
 
-        findViewById<MaterialButton>(R.id.btnGuardarMeta).setOnClickListener { guardarMeta() }
-        findViewById<MaterialButton>(R.id.btnPausarMeta).setOnClickListener { pausarMetaActual() }
-        findViewById<MaterialButton>(R.id.btnActualizarProgreso).setOnClickListener { actualizarProgresoMeta() }
+        findViewById<MaterialButton>(R.id.btnGuardarMeta).setOnClickListener { guardarPlanPresupuesto() }
+        findViewById<MaterialButton>(R.id.btnPausarMeta).setOnClickListener { pausarPlanActual() }
 
         findViewById<Button>(R.id.btnPrevMonth).setOnClickListener {
             monthCalendar.add(Calendar.MONTH, -1)
@@ -120,6 +120,7 @@ class IAPrediccionActivity : BaseActivity() {
         }
 
         setupRecyclerUis()
+        cargarCategoriasParaLimites()
         refrescarPantalla()
     }
 
@@ -173,12 +174,42 @@ class IAPrediccionActivity : BaseActivity() {
             adapter = dayAdapter
             itemAnimator = null
         }
+
+        presupuestoCategoriaAdapter = PresupuestoCategoriaAdapter()
+        findViewById<RecyclerView>(R.id.rvLimitesCategoria).apply {
+            layoutManager = LinearLayoutManager(this@IAPrediccionActivity)
+            adapter = presupuestoCategoriaAdapter
+            itemAnimator = null
+        }
+    }
+
+    private fun esPlanGeneral(): Boolean =
+        findViewById<ChipGroup>(R.id.chipGroupTipoPlan).checkedChipId == R.id.chipPresupuestoGeneral
+
+    private fun actualizarUiTipoPlan() {
+        val general = esPlanGeneral()
+        findViewById<TextInputLayout>(R.id.tilMetaMonto).isVisible = general
+        findViewById<TextView>(R.id.tvHintCategorias).isVisible = !general
+        findViewById<RecyclerView>(R.id.rvLimitesCategoria).isVisible = !general
+    }
+
+    private fun cargarCategoriasParaLimites(preseleccion: Map<Int, Double> = emptyMap()) {
+        lifecycleScope.launch {
+            try {
+                val res = RetrofitClient.instance.getCategorias()
+                if (res.isSuccessful && res.body() != null) {
+                    presupuestoCategoriaAdapter.submit(res.body()!!, preseleccion)
+                }
+            } catch (_: Exception) {
+            }
+        }
     }
 
     private fun mostrarConsejoRapidoDia(dia: PrediccionDetalleDia) {
         val fecha = formatDayLabel(dia.fecha)
         val base = "Día: $fecha\nCategoría dominante: ${dia.categoria}\nGasto proyectado: Bs. ${decimalFormat.format(dia.monto)}\n"
-        val meta = metaActual
+        val plan = planActual
+        val estado = estadoPresupuestoActual
 
         val categoriaLower = dia.categoria.lowercase()
         val esNoMitigable = categoriaLower.contains("vivienda") || categoriaLower.contains("servicio") || categoriaLower.contains("educación") || categoriaLower.contains("educacion")
@@ -186,9 +217,10 @@ class IAPrediccionActivity : BaseActivity() {
         val extra =
             if (esNoMitigable) {
                 "\nConsejo: Estos gastos son fijos o esenciales y no se sugiere reducirlos. ¡Enfocate en otros picos!"
-            } else if (meta != null && meta.montoObjetivo > 0) {
+            } else if (plan != null && estado != null && estado.tope > 0) {
                 val ahorro = (dia.monto * 0.2).coerceAtLeast(0.0)
-                val impacto = if (meta.montoRestante > 0) (ahorro / meta.montoRestante) * 100 else 0.0
+                val ref = if (estado.exceso > 0) estado.exceso else estado.tope
+                val impacto = if (ref > 0) (ahorro / ref) * 100 else 0.0
                 val sugerenciaEspecifica = if (categoriaLower.contains("alimentación") || categoriaLower.contains("alimentacion")) {
                     " (ej. cociná en casa)"
                 } else if (categoriaLower.contains("entretenimiento")) {
@@ -196,9 +228,10 @@ class IAPrediccionActivity : BaseActivity() {
                 } else {
                     ""
                 }
-                "\nConsejo: si reducís un 20% ese día$sugerenciaEspecifica, liberarías Bs. ${decimalFormat.format(ahorro)} (~${decimalFormat.format(impacto)}% de lo que te falta)."
+                val contexto = if (estado.exceso > 0) "hacia volver a tu presupuesto" else "de margen de ahorro"
+                "\nConsejo: si reducís un 20% ese día$sugerenciaEspecifica, liberarías Bs. ${decimalFormat.format(ahorro)} (~${decimalFormat.format(impacto)}% $contexto)."
             } else {
-                "\nConsejo: probá poner una meta para que el coach mida impacto real (en Bs. y %)."
+                "\nConsejo: activá un presupuesto (tope general o por categoría) para medir el impacto del recorte."
             }
 
         MaterialAlertDialogBuilder(this)
@@ -209,83 +242,63 @@ class IAPrediccionActivity : BaseActivity() {
     }
 
     private fun refrescarPantalla() {
+        cargarPlanActivo()
         cargarPrediccionMensual()
         cargarIaCoach()
     }
 
-    private fun fechaDefaultLimite(): String {
-        val c = Calendar.getInstance()
-        c.add(Calendar.MONTH, 6)
-        return SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(c.time)
-    }
-
-    private fun plantillaDesdeChip(): String? = when (findViewById<ChipGroup>(R.id.chipGroupPlantilla).checkedChipId) {
-        R.id.chipVacaciones -> "vacaciones"
-        R.id.chipEquipo -> "equipo"
-        R.id.chipViaje -> "viaje"
-        R.id.chipEmergencia -> "emergencia"
-        R.id.chipOtro -> "otro"
-        else -> null
-    }
-
-    private fun aplicarPlantillaChipDesdeChip() {
-        val chipId = findViewById<ChipGroup>(R.id.chipGroupPlantilla).checkedChipId
-        val titulo = when (chipId) {
-            R.id.chipVacaciones -> "Vacaciones"
-            R.id.chipEquipo -> "Equipo o tecnología"
-            R.id.chipViaje -> "Viaje"
-            R.id.chipEmergencia -> "Fondo de emergencia"
-            else -> return
-        }
-        if (chipId != R.id.chipOtro) {
-            findViewById<TextInputEditText>(R.id.etMetaTitulo).setText(titulo)
-        }
-    }
-
-    private fun guardarMeta() {
-        val titulo = findViewById<TextInputEditText>(R.id.etMetaTitulo).text?.toString()?.trim().orEmpty()
-        val montoStr = findViewById<TextInputEditText>(R.id.etMetaMonto).text?.toString()?.trim().orEmpty()
-        val fecha = findViewById<TextInputEditText>(R.id.etMetaFecha).text?.toString()?.trim().orEmpty()
-        val monto = montoStr.replace(",", ".").toDoubleOrNull()
-
-        if (titulo.isEmpty() || monto == null || fecha.length < 8) {
-            Toast.makeText(this, "Completa nombre, monto y fecha de la meta.", Toast.LENGTH_SHORT).show()
-            return
-        }
-
+    private fun cargarPlanActivo() {
         lifecycleScope.launch {
             try {
-                val req = CrearMetaRequest(
-                    titulo = titulo,
-                    montoObjetivo = monto,
-                    fechaLimite = fecha,
-                    plantilla = plantillaDesdeChip(),
-                    descripcion = null
-                )
-                val res = RetrofitClient.instance.crearMeta(req)
-                if (res.isSuccessful && res.body() != null) {
-                    Toast.makeText(this@IAPrediccionActivity, res.body()!!.mensaje, Toast.LENGTH_SHORT).show()
-                    cargarIaCoach()
-                } else {
-                    Toast.makeText(this@IAPrediccionActivity, "No se pudo guardar la meta.", Toast.LENGTH_SHORT).show()
+                val res = RetrofitClient.instance.getMetaActiva()
+                if (res.isSuccessful && res.body()?.tieneMeta == true) {
+                    aplicarPlanEnFormulario(res.body()!!.plan ?: res.body()!!.meta)
                 }
             } catch (_: Exception) {
-                Toast.makeText(this@IAPrediccionActivity, "Error de conexión al guardar meta.", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    private fun pausarMetaActual() {
-        val id = metaIdActual ?: return
+    private fun guardarPlanPresupuesto() {
+        val titulo = findViewById<TextInputEditText>(R.id.etMetaTitulo).text?.toString()?.trim()
+            .orEmpty().ifEmpty { "Mi plan de ahorro" }
+        val general = esPlanGeneral()
+
         lifecycleScope.launch {
             try {
-                val res = RetrofitClient.instance.pausarMeta(id)
-                if (res.isSuccessful) {
-                    Toast.makeText(this@IAPrediccionActivity, "Meta pausada.", Toast.LENGTH_SHORT).show()
-                    metaIdActual = null
+                val req = if (general) {
+                    val montoStr = findViewById<TextInputEditText>(R.id.etMetaMonto).text?.toString()?.trim().orEmpty()
+                    val monto = montoStr.replace(",", ".").toDoubleOrNull()
+                    if (monto == null || monto <= 0) {
+                        Toast.makeText(this@IAPrediccionActivity, "Indica un tope mensual válido.", Toast.LENGTH_SHORT).show()
+                        return@launch
+                    }
+                    CrearMetaRequest(titulo = titulo, tipo = "GENERAL", topeMensual = monto)
+                } else {
+                    val limites = presupuestoCategoriaAdapter.limitesSeleccionados()
+                    if (limites.isEmpty()) {
+                        Toast.makeText(
+                            this@IAPrediccionActivity,
+                            "Seleccioná al menos una categoría con tope.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        return@launch
+                    }
+                    CrearMetaRequest(
+                        titulo = titulo,
+                        tipo = "CATEGORIAS",
+                        limites = limites.map { (id, tope) ->
+                            LimiteCategoriaItem(categoriaId = id, topeMensual = tope)
+                        }
+                    )
+                }
+                val res = RetrofitClient.instance.crearMeta(req)
+                if (res.isSuccessful && res.body() != null) {
+                    Toast.makeText(this@IAPrediccionActivity, res.body()!!.mensaje, Toast.LENGTH_SHORT).show()
+                    aplicarPlanEnFormulario(res.body()!!.plan ?: res.body()!!.meta)
                     cargarIaCoach()
                 } else {
-                    Toast.makeText(this@IAPrediccionActivity, "No se pudo pausar.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@IAPrediccionActivity, "No se pudo guardar el plan.", Toast.LENGTH_SHORT).show()
                 }
             } catch (_: Exception) {
                 Toast.makeText(this@IAPrediccionActivity, "Error de conexión.", Toast.LENGTH_SHORT).show()
@@ -293,25 +306,38 @@ class IAPrediccionActivity : BaseActivity() {
         }
     }
 
-    private fun actualizarProgresoMeta() {
-        val id = metaIdActual ?: return
-        val acStr = findViewById<TextInputEditText>(R.id.etMetaAcumulado).text?.toString()?.trim().orEmpty()
-        val ac = acStr.replace(",", ".").toDoubleOrNull()
-        if (ac == null || ac < 0) {
-            Toast.makeText(this, "Indica un monto acumulado válido.", Toast.LENGTH_SHORT).show()
-            return
+    private fun aplicarPlanEnFormulario(plan: PlanPresupuesto?) {
+        if (plan == null) return
+        planIdActual = plan.id
+        planActual = plan
+        findViewById<TextInputEditText>(R.id.etMetaTitulo).setText(plan.titulo)
+        if (plan.tipo == "GENERAL") {
+            findViewById<ChipGroup>(R.id.chipGroupTipoPlan).check(R.id.chipPresupuestoGeneral)
+            plan.topeMensual?.let {
+                findViewById<TextInputEditText>(R.id.etMetaMonto).setText(
+                    if (it % 1.0 == 0.0) it.toLong().toString() else it.toString()
+                )
+            }
+        } else {
+            findViewById<ChipGroup>(R.id.chipGroupTipoPlan).check(R.id.chipPresupuestoCategorias)
+            val map = plan.limites.associate { it.categoriaId to it.topeMensual }
+            cargarCategoriasParaLimites(map)
         }
+        actualizarUiTipoPlan()
+    }
+
+    private fun pausarPlanActual() {
+        val id = planIdActual ?: return
         lifecycleScope.launch {
             try {
-                val res = RetrofitClient.instance.actualizarProgresoMeta(
-                    id,
-                    ActualizarMetaProgresoRequest(montoAcumulado = ac)
-                )
-                if (res.isSuccessful && res.body() != null) {
-                    Toast.makeText(this@IAPrediccionActivity, res.body()!!.mensaje, Toast.LENGTH_SHORT).show()
+                val res = RetrofitClient.instance.pausarMeta(id)
+                if (res.isSuccessful) {
+                    Toast.makeText(this@IAPrediccionActivity, "Plan quitado.", Toast.LENGTH_SHORT).show()
+                    planIdActual = null
+                    planActual = null
                     cargarIaCoach()
                 } else {
-                    Toast.makeText(this@IAPrediccionActivity, "No se pudo actualizar el progreso.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@IAPrediccionActivity, "No se pudo quitar el plan.", Toast.LENGTH_SHORT).show()
                 }
             } catch (_: Exception) {
                 Toast.makeText(this@IAPrediccionActivity, "Error de conexión.", Toast.LENGTH_SHORT).show()
@@ -327,9 +353,7 @@ class IAPrediccionActivity : BaseActivity() {
         val tvSemaforo = findViewById<TextView>(R.id.tvCoachSemaforo)
         val pb = findViewById<ProgressBar>(R.id.pbMetaProgreso)
         val tvMetaResumen = findViewById<TextView>(R.id.tvMetaResumen)
-        val tilAc = findViewById<TextInputLayout>(R.id.tilMetaAcumulado)
         val btnPausar = findViewById<MaterialButton>(R.id.btnPausarMeta)
-        val btnProg = findViewById<MaterialButton>(R.id.btnActualizarProgreso)
         val btnGuardar = findViewById<MaterialButton>(R.id.btnGuardarMeta)
 
         lifecycleScope.launch {
@@ -346,7 +370,9 @@ class IAPrediccionActivity : BaseActivity() {
                 }
 
                 val data = response.body()!!
-                metaActual = data.meta
+                val plan = data.plan ?: data.meta
+                planActual = plan
+                estadoPresupuestoActual = data.estadoPresupuesto
                 gastoProyectadoMesActual = data.gastoProyectadoMes
                 tvCoachNarrativa.text = data.narrativa
                 val gp = data.gastoProyectadoMes
@@ -359,57 +385,58 @@ class IAPrediccionActivity : BaseActivity() {
                 if (data.sugerencias.isEmpty()) {
                     suggestionAdapter.submit(emptyList())
                 } else {
-                    suggestionAdapter.submit(data.sugerencias.sortedBy { it.prioridad })
+                    suggestionAdapter.submit(data.sugerencias.sortedBy { it.prioridad }.take(5))
                 }
 
-                val meta = data.meta
-                if (data.tieneMeta && meta != null) {
-                    metaIdActual = meta.id
-                    pb.isVisible = true
-                    pb.progress = meta.porcentajeCompletado.roundToInt().coerceIn(0, 100)
+                val estado = data.estadoPresupuesto
+                if (data.tieneMeta && plan != null) {
+                    planIdActual = plan.id
+                    aplicarPlanEnFormulario(plan)
+                    pb.isVisible = estado != null
+                    val uso = estado?.usoPct ?: 0.0
+                    pb.progress = uso.roundToInt().coerceIn(0, 100)
                     tvMetaResumen.isVisible = true
                     tvMetaResumen.typeface = Typeface.DEFAULT_BOLD
-                    val pc = if (meta.porcentajeCompletado.isNaN()) 0.0 else meta.porcentajeCompletado
-                    val mo = if (meta.montoObjetivo.isNaN()) 0.0 else meta.montoObjetivo
-                    val ma = if (meta.montoAcumulado.isNaN()) 0.0 else meta.montoAcumulado
-                    val mr = if (meta.montoRestante.isNaN()) 0.0 else meta.montoRestante
-                    tvMetaResumen.text =
-                        "Meta: ${meta.titulo} · Bs. ${decimalFormat.format(ma)} / ${decimalFormat.format(mo)} " +
-                            "(${decimalFormat.format(pc)}%) · faltan Bs. ${decimalFormat.format(mr)}"
-                    tilAc.isVisible = true
-                    findViewById<TextInputEditText>(R.id.etMetaAcumulado).setText(decimalFormat.format(meta.montoAcumulado))
+                    if (estado != null) {
+                        val tipoTxt = if (plan.tipo == "GENERAL") "Tope general" else "${plan.limites.size} categoría(s)"
+                        val margenTxt = if (estado.exceso > 0) {
+                            "exceso Bs. ${decimalFormat.format(estado.exceso)}"
+                        } else {
+                            "ahorro proyectado Bs. ${decimalFormat.format(estado.ahorroProyectado)}"
+                        }
+                        tvMetaResumen.text =
+                            "${plan.titulo} · $tipoTxt Bs. ${decimalFormat.format(estado.tope)} · $margenTxt · ${decimalFormat.format(estado.usoPct)}% usado"
+                    } else {
+                        tvMetaResumen.text = plan.titulo
+                    }
                     btnPausar.isVisible = true
-                    btnProg.isVisible = true
-                    btnGuardar.text = "Reemplazar meta"
+                    btnGuardar.text = "Actualizar presupuesto"
                 } else {
-                    metaIdActual = null
+                    planIdActual = null
+                    planActual = null
                     pb.isVisible = false
                     tvMetaResumen.isVisible = false
-                    tilAc.isVisible = false
                     btnPausar.isVisible = false
-                    btnProg.isVisible = false
-                    btnGuardar.text = "Activar meta"
+                    btnGuardar.text = "Activar presupuesto"
                 }
 
-                // Semáforo: compara gasto proyectado del mes vs meta (presupuesto)
-                if (meta != null && meta.montoObjetivo > 0 && !gp.isNaN()) {
-                    val ratio = gp / meta.montoObjetivo
+                if (estado != null && estado.tope > 0) {
                     when {
-                        ratio <= 0.75 -> {
-                            tvSemaforo.text = "Riesgo: Verde (controlado)"
+                        estado.usoPct <= 75 -> {
+                            tvSemaforo.text = "Presupuesto: Verde (margen de ahorro)"
                             tvSemaforo.setTextColor(Color.parseColor("#7CFFB2"))
                         }
-                        ratio <= 1.0 -> {
-                            tvSemaforo.text = "Riesgo: Amarillo (cerca del límite)"
+                        estado.usoPct <= 100 -> {
+                            tvSemaforo.text = "Presupuesto: Amarillo (cerca del tope)"
                             tvSemaforo.setTextColor(Color.parseColor("#FFD166"))
                         }
                         else -> {
-                            tvSemaforo.text = "Riesgo: Rojo (probable excedente)"
+                            tvSemaforo.text = "Presupuesto: Rojo (exceso proyectado)"
                             tvSemaforo.setTextColor(Color.parseColor("#FF6B6B"))
                         }
                     }
                 } else {
-                    tvSemaforo.text = "Riesgo: — (definí una meta para comparar)"
+                    tvSemaforo.text = "Presupuesto: — (activá un tope para comparar)"
                     tvSemaforo.setTextColor(Color.parseColor("#D0D0E0"))
                 }
             } catch (_: Exception) {
@@ -549,7 +576,7 @@ class IAPrediccionActivity : BaseActivity() {
         } else {
             insight.text = textoInsightPredeterminado
         }
-        val topDias = dias.sortedByDescending { it.monto }.take(3)
+        val topDias = dias.sortedByDescending { it.monto }
         dayAdapter.submit(topDias)
         categoryAdapter.submit(categoriasMesCache, totalMesCache, categoriaFiltro)
 
