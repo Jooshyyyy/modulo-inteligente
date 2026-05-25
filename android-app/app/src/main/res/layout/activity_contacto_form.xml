@@ -5,14 +5,14 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="24dp"
-    android:background="#F5F5F5">
+    android:background="@color/bg_light">
 
     <TextView
         android:id="@+id/tvFormTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Agregar Contacto"
-        android:textColor="#1A237E"
+        android:textColor="@color/bank_primary"
         android:textSize="24sp"
         android:textStyle="bold"
         android:layout_marginBottom="32dp"/>
@@ -21,8 +21,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
-        android:background="#C5C5C5"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        style="@style/Widget.ModuloInteligente.TextInput">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etNombre"
@@ -36,8 +35,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
-        android:background="#C5C5C5"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        style="@style/Widget.ModuloInteligente.TextInput">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etAlias"
@@ -51,8 +49,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
-        android:background="#C5C5C5"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        style="@style/Widget.ModuloInteligente.TextInput">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etCuentaBancaria"
@@ -66,8 +63,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="32dp"
-        android:background="#C5C5C5"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+        style="@style/Widget.ModuloInteligente.ExposedDropdownMenu">
 
         <AutoCompleteTextView
             android:id="@+id/etNombreBanco"
@@ -82,8 +78,8 @@
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:text="Guardar Contacto"
-        android:backgroundTint="#1A237E"
-        android:textColor="#FFFFFF"
+        android:backgroundTint="@color/bank_primary"
+        android:textColor="@color/text_on_primary"
         app:cornerRadius="8dp" />
 
 </LinearLayout>

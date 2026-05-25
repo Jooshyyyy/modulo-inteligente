@@ -6,9 +6,10 @@
     android:layout_height="wrap_content"
     android:layout_margin="16dp"
     app:cardCornerRadius="24dp"
-    app:cardElevation="0dp"
-    app:cardBackgroundColor="#2A2A40"
-    app:strokeColor="#6E56FF"
+
+    app:cardBackgroundColor="@color/card_surface"
+    app:cardElevation="2dp"
+    app:strokeColor="@color/card_border"
     app:strokeWidth="1dp">
 
     <LinearLayout
@@ -28,8 +29,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Predicción de Gasto Hoy"
-                android:textColor="#FFFFFF"
-                android:textSize="18sp"
+                android:textColor="@color/text_primary"
+                android:textSize="@dimen/text_title"
                 android:textStyle="bold"/>
 
         </LinearLayout>
@@ -39,8 +40,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Cargando..."
-            android:textSize="14sp"
-            android:textColor="#B0B0C0"
+            android:textSize="16sp"
+            android:textColor="@color/text_muted"
             android:layout_marginTop="4dp"/>
 
         <androidx.cardview.widget.CardView
@@ -49,7 +50,9 @@
             android:layout_marginTop="16dp"
             app:cardCornerRadius="14dp"
             app:cardElevation="0dp"
-            app:cardBackgroundColor="#1A1829"
+            app:cardBackgroundColor="@color/card_surface_alt"
+            app:strokeColor="@color/card_border"
+            app:strokeWidth="1dp"
             app:contentPadding="16dp">
             
             <LinearLayout
@@ -63,19 +66,19 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Bs. --"
-                    android:textSize="36sp"
+                    android:textSize="@dimen/text_display"
                     android:textStyle="bold"
-                    android:textColor="#FFFFFF"/>
+                    android:textColor="@color/text_primary"/>
                     
                 <TextView
                     android:id="@+id/tvPrediccionNivel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="..."
-                    android:textSize="14sp"
+                    android:textSize="16sp"
                     android:textStyle="bold"
-                    android:textColor="#6E56FF"
-                    android:background="#2A2A40"
+                    android:textColor="@color/bank_accent"
+                    android:background="@color/card_surface_alt"
                     android:paddingHorizontal="12dp"
                     android:paddingVertical="4dp"
                     android:layout_marginTop="8dp"/>
@@ -85,8 +88,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="..."
-                    android:textSize="13sp"
-                    android:textColor="#A0A0A0"
+                    android:textSize="16sp"
+                    android:textColor="@color/text_muted"
                     android:layout_marginTop="16dp"
                     android:gravity="center"/>
 
@@ -95,12 +98,12 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:background="#2A2A40"
+                    android:background="@color/card_surface_alt"
                     android:paddingHorizontal="10dp"
                     android:paddingVertical="6dp"
                     android:text="Alerta IA: —"
-                    android:textColor="#D0D0E0"
-                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="15sp"
                     android:textStyle="bold" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
@@ -120,7 +123,7 @@
             android:layout_height="wrap_content"
             android:text="[Demo] Simular Día Siguiente"
             style="?android:attr/borderlessButtonStyle"
-            android:textColor="#6E56FF"
+            android:textColor="@color/bank_accent"
             android:layout_marginTop="16dp"/>
 
     </LinearLayout>

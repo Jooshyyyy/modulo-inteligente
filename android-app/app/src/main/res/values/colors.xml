@@ -1,23 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Primary Palette - Elegant Navy -->
-    <color name="primary_navy">#0F172A</color>
-    <color name="primary_navy_light">#1E293B</color>
-    <color name="primary_navy_dark">#020617</color>
+    <!-- Corporate banking palette (light, high contrast) -->
+    <color name="bank_primary">#003B5C</color>
+    <color name="bank_primary_dark">#002A42</color>
+    <color name="bank_primary_light">#005580</color>
+    <color name="bank_accent">#0066A1</color>
+    <color name="bank_gold">#B8860B</color>
+    <color name="bank_gold_dark">#8B6914</color>
 
-    <!-- Secondary Palette - Professional Gold -->
-    <color name="secondary_gold">#D4AF37</color>
-    <color name="secondary_gold_dark">#B8860B</color>
-
-    <!-- Neutral Palette -->
-    <color name="bg_light">#F8FAFC</color>
+    <color name="bg_light">#F2F5F8</color>
     <color name="surface_white">#FFFFFF</color>
-    <color name="text_primary">#0F172A</color>
-    <color name="text_secondary">#475569</color>
-    <color name="divider">#E2E8F0</color>
+    <color name="card_surface">#FFFFFF</color>
+    <color name="card_surface_alt">#EEF3F8</color>
+    <color name="card_border">#C5D3E0</color>
 
-    <!-- Essentials -->
+    <color name="text_primary">#1A2B3C</color>
+    <color name="text_secondary">#4A6275</color>
+    <color name="text_muted">#6B7F92</color>
+    <color name="text_on_primary">#FFFFFF</color>
+
+    <color name="divider">#DDE5ED</color>
+    <color name="input_stroke">#0066A1</color>
+    <color name="chip_bg">#E8EFF5</color>
+    <color name="highlight_row">#E8F2FA</color>
+
+    <color name="success">#1B7A4E</color>
+    <color name="success_bg">#E6F4EC</color>
+    <color name="warning">#B45309</color>
+    <color name="warning_bg">#FEF3C7</color>
+    <color name="error">#B91C1C</color>
+    <color name="error_bg">#FEE2E2</color>
+
+    <color name="chart_primary">#0066A1</color>
+    <color name="chart_grid">#DDE5ED</color>
+    <color name="chart_bar">#1B7A4E</color>
+    <color name="chart_label">#4A6275</color>
+
+    <!-- Legacy aliases -->
+    <color name="primary_navy">@color/bank_primary</color>
+    <color name="primary_navy_light">@color/bank_primary_light</color>
+    <color name="primary_navy_dark">@color/bank_primary_dark</color>
+    <color name="secondary_gold">@color/bank_gold</color>
+    <color name="secondary_gold_dark">@color/bank_gold_dark</color>
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
-    <color name="error">#B91C1C</color>
 </resources>

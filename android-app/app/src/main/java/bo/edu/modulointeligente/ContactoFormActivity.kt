@@ -44,6 +44,15 @@ class ContactoFormActivity : AppCompatActivity() {
         val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, bancos)
         etNombreBanco.setAdapter(adapter)
 
+        etNombreBanco.setOnClickListener {
+            etNombreBanco.showDropDown()
+        }
+        etNombreBanco.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) {
+                etNombreBanco.showDropDown()
+            }
+        }
+
         // Ver si estamos editando
         contactoId = intent.getIntExtra("CONTACTO_ID", -1).takeIf { it != -1 }
         if (contactoId != null) {

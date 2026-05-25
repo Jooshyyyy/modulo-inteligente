@@ -66,7 +66,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="Primer Nombre"
-                    app:boxBackgroundColor="@color/surface_white">>
+                    app:boxBackgroundColor="@color/surface_white">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etPrimerNombre"
                         android:layout_width="match_parent"
@@ -79,7 +79,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:hint="Segundo Nombre"
-                    app:boxBackgroundColor="@color/surface_white">>
+                    app:boxBackgroundColor="@color/surface_white">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etSegundoNombre"
                         android:layout_width="match_parent"
@@ -92,7 +92,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:hint="Apellido Paterno"
-                    app:boxBackgroundColor="@color/surface_white">>
+                    app:boxBackgroundColor="@color/surface_white">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etApellidoPaterno"
                         android:layout_width="match_parent"
@@ -105,7 +105,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:hint="Apellido Materno"
-                    app:boxBackgroundColor="@color/surface_white">>
+                    app:boxBackgroundColor="@color/surface_white">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etApellidoMaterno"
                         android:layout_width="match_parent"

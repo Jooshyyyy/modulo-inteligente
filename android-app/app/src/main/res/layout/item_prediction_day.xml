@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="8dp"
-    android:background="#2A2A40"
+    android:background="@drawable/bg_row_day"
     android:clickable="true"
     android:focusable="true"
     android:foreground="?attr/selectableItemBackground"
@@ -30,8 +30,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Lun 20/04"
-            android:textColor="#FFFFFF"
-            android:textSize="13sp"
+            android:textColor="@color/text_primary"
+            android:textSize="16sp"
             android:textStyle="bold" />
 
         <TextView
@@ -40,8 +40,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
             android:text="Transporte"
-            android:textColor="#B0B0C0"
-            android:textSize="12sp" />
+            android:textColor="@color/text_muted"
+            android:textSize="15sp" />
     </LinearLayout>
 
     <TextView
@@ -49,8 +49,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Bs. 0.00"
-        android:textColor="#FFFFFF"
-        android:textSize="13sp"
+        android:textColor="@color/text_primary"
+        android:textSize="16sp"
         android:textStyle="bold" />
 
 </LinearLayout>

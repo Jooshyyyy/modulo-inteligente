@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    android:background="#1A1829"
+    android:background="@color/bg_light"
     tools:openDrawer="start">
 
     <LinearLayout
@@ -18,10 +18,10 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="#1A1829"
+            android:background="@color/bank_primary"
             app:navigationIcon="@drawable/ic_menu"
             app:title="Coach IA y Predicciones"
-            app:titleTextColor="#FFFFFF" />
+            app:titleTextColor="@color/text_on_primary" />
 
         <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
@@ -34,157 +34,16 @@
                 android:orientation="vertical"
                 android:padding="16dp">
 
-                <!-- PASO 1: META -->
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="24dp"
-                    app:cardBackgroundColor="#1A1829"
-                    app:cardCornerRadius="24dp"
-                    app:cardElevation="0dp"
-                    app:strokeColor="#6E56FF"
-                    app:strokeWidth="1dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="20dp">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Paso 1 · Tu presupuesto para ahorrar"
-                            android:textColor="#FFFFFF"
-                            android:textSize="16sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="6dp"
-                            android:text="Elegí un tope mensual general o límites solo en las categorías que quieras controlar. El coach cruza eso con las predicciones de gasto."
-                            android:textColor="#A0A0A0"
-                            android:textSize="12sp" />
-
-                        <com.google.android.material.chip.ChipGroup
-                            android:id="@+id/chipGroupTipoPlan"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="16dp"
-                            app:singleLine="false"
-                            app:singleSelection="true">
-
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chipPresupuestoGeneral"
-                                style="@style/Widget.MaterialComponents.Chip.Filter"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                app:chipBackgroundColor="#2A2A40"
-                                android:textColor="#FFFFFF"
-                                android:text="Tope mensual general" />
-
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chipPresupuestoCategorias"
-                                style="@style/Widget.MaterialComponents.Chip.Filter"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                app:chipBackgroundColor="#2A2A40"
-                                android:textColor="#FFFFFF"
-                                android:text="Límites por categoría" />
-                        </com.google.android.material.chip.ChipGroup>
-
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/tilMetaTitulo"
-                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="16dp"
-                            app:boxStrokeColor="#6E56FF"
-                            android:textColorHint="#B0B0C0"
-                            android:hint="Nombre del plan (opcional)">
-
-                            <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/etMetaTitulo"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:textColor="#FFFFFF"
-                                android:inputType="textCapSentences" />
-                        </com.google.android.material.textfield.TextInputLayout>
-
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/tilMetaMonto"
-                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            app:boxStrokeColor="#6E56FF"
-                            android:textColorHint="#B0B0C0"
-                            android:hint="Tope de gasto mensual (Bs.)">
-
-                            <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/etMetaMonto"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:textColor="#FFFFFF"
-                                android:inputType="numberDecimal" />
-                        </com.google.android.material.textfield.TextInputLayout>
-
-                        <TextView
-                            android:id="@+id/tvHintCategorias"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
-                            android:text="Marcá categorías y poné un tope en Bs. para cada una."
-                            android:textColor="#8E8EA8"
-                            android:textSize="12sp"
-                            android:visibility="gone" />
-
-                        <androidx.recyclerview.widget.RecyclerView
-                            android:id="@+id/rvLimitesCategoria"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:nestedScrollingEnabled="false"
-                            android:visibility="gone" />
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="16dp"
-                            android:gravity="end"
-                            android:orientation="horizontal">
-
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btnPausarMeta"
-                                style="@style/Widget.MaterialComponents.Button.TextButton"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:textColor="#FFFFFF"
-                                android:text="Quitar plan"
-                                android:visibility="gone" />
-
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btnGuardarMeta"
-                                android:layout_width="wrap_content"
-                                android:layout_height="52dp"
-                                app:backgroundTint="#6E56FF"
-                                android:textColor="#FFFFFF"
-                                android:text="Activar presupuesto" />
-                        </LinearLayout>
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <!-- PASO 2: COACH -->
+                <!-- PASO 1 (VISUAL): EL COACH IA (Antes Paso 2, ahora principal) -->
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/cardIaCoach"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="24dp"
-                    app:cardBackgroundColor="#2A2A40"
+                    app:cardBackgroundColor="@color/card_surface_alt"
                     app:cardCornerRadius="24dp"
                     app:cardElevation="0dp"
-                    app:strokeColor="#6E56FF"
+                    app:strokeColor="@color/card_border"
                     app:strokeWidth="1dp">
 
                     <LinearLayout
@@ -197,9 +56,9 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:letterSpacing="0.05"
-                            android:text="Paso 2 · Coach de ahorro (IA)"
+                            android:text="Análisis del Coach de ahorro (IA)"
                             android:textAllCaps="true"
-                            android:textColor="#FFFFFF"
+                            android:textColor="@color/text_primary"
                             android:textSize="11sp"
                             android:textStyle="bold" />
 
@@ -220,7 +79,7 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="Gasto proyectado del mes"
-                                    android:textColor="#8E8EA8"
+                                    android:textColor="@color/text_muted"
                                     android:textSize="11sp" />
 
                                 <TextView
@@ -229,7 +88,7 @@
                                     android:layout_height="wrap_content"
                                     android:layout_marginTop="4dp"
                                     android:text="—"
-                                    android:textColor="#FFFFFF"
+                                    android:textColor="@color/text_primary"
                                     android:textSize="18sp"
                                     android:textStyle="bold" />
                             </LinearLayout>
@@ -245,7 +104,7 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="Días con predicción"
-                                    android:textColor="#8E8EA8"
+                                    android:textColor="@color/text_muted"
                                     android:textSize="11sp" />
 
                                 <TextView
@@ -254,7 +113,7 @@
                                     android:layout_height="wrap_content"
                                     android:layout_marginTop="4dp"
                                     android:text="—"
-                                    android:textColor="#FFFFFF"
+                                    android:textColor="@color/text_primary"
                                     android:textSize="18sp"
                                     android:textStyle="bold" />
                             </LinearLayout>
@@ -265,12 +124,12 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="10dp"
-                            android:background="#1A1829"
+                            android:background="@color/bg_light"
                             android:paddingHorizontal="10dp"
                             android:paddingVertical="6dp"
                             android:text="Riesgo: —"
-                            android:textColor="#D0D0E0"
-                            android:textSize="12sp"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="15sp"
                             android:textStyle="bold" />
 
                         <TextView
@@ -279,8 +138,8 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="14dp"
                             android:lineSpacingExtra="3dp"
-                            android:textColor="#FFFFFF"
-                            android:textSize="14sp" />
+                            android:textColor="@color/text_primary"
+                            android:textSize="16sp" />
 
                         <androidx.recyclerview.widget.RecyclerView
                             android:id="@+id/rvCoachIndicadores"
@@ -298,7 +157,7 @@
                             android:layout_height="8dp"
                             android:layout_marginTop="14dp"
                             android:max="100"
-                            android:progressTint="#6E56FF"
+                            android:progressTint="@color/bank_accent"
                             android:visibility="gone" />
 
                         <TextView
@@ -306,8 +165,8 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
-                            android:textColor="#FFFFFF"
-                            android:textSize="13sp"
+                            android:textColor="@color/text_primary"
+                            android:textSize="16sp"
                             android:visibility="gone" />
 
                         <TextView
@@ -315,8 +174,8 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="20dp"
                             android:text="Recortes para volver a tu presupuesto"
-                            android:textColor="#B0B0C0"
-                            android:textSize="13sp"
+                            android:textColor="@color/text_muted"
+                            android:textSize="16sp"
                             android:textStyle="bold" />
 
                         <androidx.recyclerview.widget.RecyclerView
@@ -330,13 +189,183 @@
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- PASO 3: MAPA DEL MES -->
-                <!-- MONTHLY PROJECTION -->
+                <!-- PASO 2 (VISUAL): CONFIGURACIÓN DE PRESUPUESTO (Colapsable y Simplificado) -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="24dp"
+                    app:cardBackgroundColor="@color/card_surface"
+                    app:cardCornerRadius="24dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="@color/card_border"
+                    app:strokeWidth="1dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="20dp">
+
+                        <!-- Encabezado táctil para colapsar/expandir -->
+                        <LinearLayout
+                            android:id="@+id/layoutMetaHeader"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:clickable="true"
+                            android:focusable="true">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Presupuesto y Límites"
+                                android:textColor="@color/text_primary"
+                                android:textSize="16sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/tvToggleMetaIndicator"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Configurar ▾"
+                                android:textColor="@color/bank_accent"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <!-- Contenido que se colapsa -->
+                        <LinearLayout
+                            android:id="@+id/layoutMetaContent"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:layout_marginTop="12dp"
+                            android:visibility="gone">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Establece un tope mensual general o límites para categorías clave que cruzar con las predicciones."
+                                android:textColor="@color/text_muted"
+                                android:textSize="15sp" />
+
+                            <com.google.android.material.chip.ChipGroup
+                                android:id="@+id/chipGroupTipoPlan"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="16dp"
+                                app:singleLine="false"
+                                app:singleSelection="true">
+
+                                <com.google.android.material.chip.Chip
+                                    android:id="@+id/chipPresupuestoGeneral"
+                                    style="@style/Widget.MaterialComponents.Chip.Filter"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    app:chipBackgroundColor="@color/chip_bg"
+                                    android:textColor="@color/text_primary"
+                                    android:text="Tope mensual general" />
+
+                                <com.google.android.material.chip.Chip
+                                    android:id="@+id/chipPresupuestoCategorias"
+                                    style="@style/Widget.MaterialComponents.Chip.Filter"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    app:chipBackgroundColor="@color/chip_bg"
+                                    android:textColor="@color/text_primary"
+                                    android:text="Límites por categoría" />
+                            </com.google.android.material.chip.ChipGroup>
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:id="@+id/tilMetaTitulo"
+                                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="16dp"
+                                app:boxStrokeColor="@color/bank_accent"
+                                android:textColorHint="@color/text_muted"
+                                android:hint="Nombre del plan (opcional)">
+
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/etMetaTitulo"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:textColor="@color/text_primary"
+                                    android:inputType="textCapSentences" />
+                            </com.google.android.material.textfield.TextInputLayout>
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:id="@+id/tilMetaMonto"
+                                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                app:boxStrokeColor="@color/bank_accent"
+                                android:textColorHint="@color/text_muted"
+                                android:hint="Tope de gasto mensual (Bs.)">
+
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/etMetaMonto"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:textColor="@color/text_primary"
+                                    android:inputType="numberDecimal" />
+                            </com.google.android.material.textfield.TextInputLayout>
+
+                            <TextView
+                                android:id="@+id/tvHintCategorias"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="12dp"
+                                android:text="Marcá categorías y poné un tope en Bs. para cada una."
+                                android:textColor="@color/text_muted"
+                                android:textSize="15sp"
+                                android:visibility="gone" />
+
+                            <androidx.recyclerview.widget.RecyclerView
+                                android:id="@+id/rvLimitesCategoria"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:nestedScrollingEnabled="false"
+                                android:visibility="gone" />
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="16dp"
+                                android:gravity="end"
+                                android:orientation="horizontal">
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/btnPausarMeta"
+                                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:textColor="@color/text_primary"
+                                    android:text="Quitar plan"
+                                    android:visibility="gone" />
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/btnGuardarMeta"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="52dp"
+                                    app:backgroundTint="@color/bank_primary"
+                                    android:textColor="@color/text_on_primary"
+                                    android:text="Activar presupuesto" />
+                            </LinearLayout>
+                        </LinearLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- PASO 3: EXPLORADOR DEL MES E INTERACTIVIDAD GRÁFICA -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="30dp"
-                    app:cardBackgroundColor="#2A2A40"
+                    app:cardBackgroundColor="@color/card_surface_alt"
                     app:cardCornerRadius="24dp"
                     app:cardElevation="0dp">
 
@@ -358,7 +387,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="◀"
-                                android:textColor="#6E56FF" />
+                                android:textColor="@color/bank_accent" />
 
                             <TextView
                                 android:id="@+id/tvMonthTitle"
@@ -367,7 +396,7 @@
                                 android:layout_weight="1"
                                 android:gravity="center"
                                 android:text="Mes"
-                                android:textColor="#FFFFFF"
+                                android:textColor="@color/text_primary"
                                 android:textSize="18sp"
                                 android:textStyle="bold" />
 
@@ -377,7 +406,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="▶"
-                                android:textColor="#6E56FF" />
+                                android:textColor="@color/bank_accent" />
                         </LinearLayout>
 
                         <TextView
@@ -385,7 +414,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
                             android:text="Paso 3 · Explorá tu mes"
-                            android:textColor="#8E8EA8"
+                            android:textColor="@color/text_muted"
                             android:textSize="11sp"
                             android:textStyle="bold" />
 
@@ -395,7 +424,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="10dp"
                             android:text="Bs. 0.00"
-                            android:textColor="#FFFFFF"
+                            android:textColor="@color/text_primary"
                             android:textSize="32sp"
                             android:textStyle="bold" />
 
@@ -405,28 +434,84 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
                             android:text="Suma de lo que el modelo espera gastar en el mes. Comparalo con tu tope o límites por categoría."
-                            android:textColor="#A0A0A0"
-                            android:textSize="12sp" />
+                            android:textColor="@color/text_muted"
+                            android:textSize="15sp" />
 
-                        <com.github.mikephil.charting.charts.PieChart
-                            android:id="@+id/pieChartCategorias"
+                        <!-- Selector dinámico de gráficos (Tabs) -->
+                        <com.google.android.material.chip.ChipGroup
+                            android:id="@+id/chipGroupGraficos"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="16dp"
+                            app:singleSelection="true"
+                            app:checkedChip="@+id/chipGraficoPie">
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipGraficoPie"
+                                style="@style/Widget.MaterialComponents.Chip.Filter"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Distribución" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipGraficoRadar"
+                                style="@style/Widget.MaterialComponents.Chip.Filter"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Radar" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipGraficoLinea"
+                                style="@style/Widget.MaterialComponents.Chip.Filter"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Tendencia diaria" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipGraficoBarras"
+                                style="@style/Widget.MaterialComponents.Chip.Filter"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Semanas" />
+                        </com.google.android.material.chip.ChipGroup>
+
+                        <!-- Contenedor único para los gráficos stackeados -->
+                        <FrameLayout
                             android:layout_width="match_parent"
                             android:layout_height="250dp"
-                            android:layout_marginTop="16dp" />
+                            android:layout_marginTop="16dp">
 
-                        <com.github.mikephil.charting.charts.RadarChart
-                            android:id="@+id/radarChartCategorias"
-                            android:layout_width="match_parent"
-                            android:layout_height="250dp"
-                            android:layout_marginTop="16dp" />
+                            <com.github.mikephil.charting.charts.PieChart
+                                android:id="@+id/pieChartCategorias"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent" />
+
+                            <com.github.mikephil.charting.charts.RadarChart
+                                android:id="@+id/radarChartCategorias"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:visibility="gone" />
+
+                            <com.github.mikephil.charting.charts.LineChart
+                                android:id="@+id/lineChartDias"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:visibility="gone" />
+
+                            <com.github.mikephil.charting.charts.BarChart
+                                android:id="@+id/barChartSemanas"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:visibility="gone" />
+                        </FrameLayout>
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="24dp"
                             android:text="Categorías (tocá para filtrar días)"
-                            android:textColor="#B0B0C0"
-                            android:textSize="14sp"
+                            android:textColor="@color/text_muted"
+                            android:textSize="16sp"
                             android:textStyle="bold" />
 
                         <androidx.recyclerview.widget.RecyclerView
@@ -443,8 +528,8 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="24dp"
                             android:text="Días del mes"
-                            android:textColor="#B0B0C0"
-                            android:textSize="14sp"
+                            android:textColor="@color/text_muted"
+                            android:textSize="16sp"
                             android:textStyle="bold" />
 
                         <HorizontalScrollView
@@ -464,8 +549,8 @@
                                     style="@style/Widget.MaterialComponents.Chip.Filter"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    app:chipBackgroundColor="#1A1829"
-                                    android:textColor="#FFFFFF"
+                                    app:chipBackgroundColor="@color/bg_light"
+                                    android:textColor="@color/text_primary"
                                     android:text="Semana 1" />
 
                                 <com.google.android.material.chip.Chip
@@ -473,8 +558,8 @@
                                     style="@style/Widget.MaterialComponents.Chip.Filter"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    app:chipBackgroundColor="#1A1829"
-                                    android:textColor="#FFFFFF"
+                                    app:chipBackgroundColor="@color/bg_light"
+                                    android:textColor="@color/text_primary"
                                     android:text="Semana 2" />
 
                                 <com.google.android.material.chip.Chip
@@ -482,8 +567,8 @@
                                     style="@style/Widget.MaterialComponents.Chip.Filter"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    app:chipBackgroundColor="#1A1829"
-                                    android:textColor="#FFFFFF"
+                                    app:chipBackgroundColor="@color/bg_light"
+                                    android:textColor="@color/text_primary"
                                     android:text="Semana 3" />
 
                                 <com.google.android.material.chip.Chip
@@ -491,8 +576,8 @@
                                     style="@style/Widget.MaterialComponents.Chip.Filter"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    app:chipBackgroundColor="#1A1829"
-                                    android:textColor="#FFFFFF"
+                                    app:chipBackgroundColor="@color/bg_light"
+                                    android:textColor="@color/text_primary"
                                     android:text="Semana 4+" />
                             </com.google.android.material.chip.ChipGroup>
                         </HorizontalScrollView>
@@ -502,23 +587,21 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="12dp"
-                            android:background="#1A1829"
+                            android:background="@color/bg_light"
                             android:padding="12dp"
                             android:text="Tocá una categoría arriba o un día acá para ver el detalle."
-                            android:textColor="#A0A0A0"
-                            android:textSize="13sp" />
+                            android:textColor="@color/text_muted"
+                            android:textSize="16sp" />
 
-                        <com.github.mikephil.charting.charts.LineChart
-                            android:id="@+id/lineChartDias"
+                        <!-- Toggle para desglose de 30 días -->
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnToggleDetalleDiario"
+                            style="@style/Widget.MaterialComponents.Button.TextButton"
                             android:layout_width="match_parent"
-                            android:layout_height="200dp"
-                            android:layout_marginTop="12dp" />
-
-                        <com.github.mikephil.charting.charts.BarChart
-                            android:id="@+id/barChartSemanas"
-                            android:layout_width="match_parent"
-                            android:layout_height="200dp"
-                            android:layout_marginTop="12dp" />
+                            android:layout_height="52dp"
+                            android:layout_marginTop="16dp"
+                            android:text="Ver desglose día por día ▾"
+                            android:textColor="@color/bank_accent" />
 
                         <androidx.recyclerview.widget.RecyclerView
                             android:id="@+id/rvMonthlyDayList"
@@ -527,6 +610,7 @@
                             android:layout_marginTop="12dp"
                             android:overScrollMode="never"
                             android:nestedScrollingEnabled="false"
+                            android:visibility="gone"
                             tools:listitem="@layout/item_prediction_day" />
 
                     </LinearLayout>
@@ -543,6 +627,10 @@
         android:layout_gravity="start"
         android:fitsSystemWindows="true"
         app:headerLayout="@layout/nav_header"
+        android:background="@color/surface_white"
+        app:itemTextAppearance="@style/Text.ModuloInteligente.Subtitle"
+        app:itemIconTint="@color/bank_primary"
+        app:itemTextColor="@color/text_primary"
         app:menu="@menu/nav_menu" />
 
 </androidx.drawerlayout.widget.DrawerLayout>

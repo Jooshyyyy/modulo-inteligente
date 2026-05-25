@@ -96,6 +96,36 @@ class IAPrediccionActivity : BaseActivity() {
         val navView = findViewById<NavigationView>(R.id.nav_view)
         setupDrawer(drawerLayout, navView)
 
+        // 1. Lógica Colapsable de Configuración de Presupuesto
+        val layoutMetaHeader = findViewById<View>(R.id.layoutMetaHeader)
+        val layoutMetaContent = findViewById<View>(R.id.layoutMetaContent)
+        val tvToggleMetaIndicator = findViewById<TextView>(R.id.tvToggleMetaIndicator)
+
+        layoutMetaHeader.setOnClickListener {
+            val isVisible = layoutMetaContent.visibility == View.VISIBLE
+            layoutMetaContent.visibility = if (isVisible) View.GONE else View.VISIBLE
+            tvToggleMetaIndicator.text = if (isVisible) "Configurar ▾" else "Cerrar ▴"
+        }
+
+        // 2. Lógica de Alternación de Gráficos (Tabs / Chips)
+        val chipGroupGraficos = findViewById<ChipGroup>(R.id.chipGroupGraficos)
+        chipGroupGraficos.setOnCheckedStateChangeListener { _, checkedIds ->
+            val checkedId = checkedIds.firstOrNull() ?: R.id.chipGraficoPie
+            findViewById<PieChart>(R.id.pieChartCategorias).visibility = if (checkedId == R.id.chipGraficoPie) View.VISIBLE else View.GONE
+            findViewById<RadarChart>(R.id.radarChartCategorias).visibility = if (checkedId == R.id.chipGraficoRadar) View.VISIBLE else View.GONE
+            findViewById<LineChart>(R.id.lineChartDias).visibility = if (checkedId == R.id.chipGraficoLinea) View.VISIBLE else View.GONE
+            findViewById<BarChart>(R.id.barChartSemanas).visibility = if (checkedId == R.id.chipGraficoBarras) View.VISIBLE else View.GONE
+        }
+
+        // 3. Lógica para mostrar/ocultar el desglose diario (30 días)
+        val btnToggleDetalleDiario = findViewById<MaterialButton>(R.id.btnToggleDetalleDiario)
+        val rvMonthlyDayList = findViewById<RecyclerView>(R.id.rvMonthlyDayList)
+        btnToggleDetalleDiario.setOnClickListener {
+            val isVisible = rvMonthlyDayList.visibility == View.VISIBLE
+            rvMonthlyDayList.visibility = if (isVisible) View.GONE else View.VISIBLE
+            btnToggleDetalleDiario.text = if (isVisible) "Ver desglose día por día ▾" else "Ocultar desglose diario ▴"
+        }
+
         findViewById<ChipGroup>(R.id.chipGroupTipoPlan).check(R.id.chipPresupuestoGeneral)
         actualizarUiTipoPlan()
 
@@ -424,20 +454,20 @@ class IAPrediccionActivity : BaseActivity() {
                     when {
                         estado.usoPct <= 75 -> {
                             tvSemaforo.text = "Presupuesto: Verde (margen de ahorro)"
-                            tvSemaforo.setTextColor(Color.parseColor("#7CFFB2"))
+                            tvSemaforo.setTextColor(BankColors.success(this@IAPrediccionActivity))
                         }
                         estado.usoPct <= 100 -> {
                             tvSemaforo.text = "Presupuesto: Amarillo (cerca del tope)"
-                            tvSemaforo.setTextColor(Color.parseColor("#FFD166"))
+                            tvSemaforo.setTextColor(BankColors.warning(this@IAPrediccionActivity))
                         }
                         else -> {
                             tvSemaforo.text = "Presupuesto: Rojo (exceso proyectado)"
-                            tvSemaforo.setTextColor(Color.parseColor("#FF6B6B"))
+                            tvSemaforo.setTextColor(BankColors.error(this@IAPrediccionActivity))
                         }
                     }
                 } else {
                     tvSemaforo.text = "Presupuesto: — (activá un tope para comparar)"
-                    tvSemaforo.setTextColor(Color.parseColor("#D0D0E0"))
+                    tvSemaforo.setTextColor(BankColors.muted(this@IAPrediccionActivity))
                 }
             } catch (_: Exception) {
                 tvCoachNarrativa.text = "Error al cargar el coach de IA."
@@ -511,7 +541,8 @@ class IAPrediccionActivity : BaseActivity() {
                     pieChartCategorias.isDrawHoleEnabled = true
                     pieChartCategorias.holeRadius = 58f
                     pieChartCategorias.transparentCircleRadius = 61f
-                    pieChartCategorias.setHoleColor(android.graphics.Color.TRANSPARENT)
+                    pieChartCategorias.setHoleColor(BankColors.surface(this@IAPrediccionActivity))
+                    pieChartCategorias.setBackgroundColor(BankColors.surface(this@IAPrediccionActivity))
                     pieChartCategorias.setDrawEntryLabels(false)
                     pieChartCategorias.animateY(1000)
                     pieChartCategorias.invalidate()
@@ -581,6 +612,10 @@ class IAPrediccionActivity : BaseActivity() {
         categoryAdapter.submit(categoriasMesCache, totalMesCache, categoriaFiltro)
 
         val lineChartDias = findViewById<LineChart>(R.id.lineChartDias)
+        val chartBg = BankColors.surface(this)
+        lineChartDias.setBackgroundColor(chartBg)
+        findViewById<RadarChart>(R.id.radarChartCategorias).setBackgroundColor(chartBg)
+        findViewById<BarChart>(R.id.barChartSemanas).setBackgroundColor(chartBg)
         val entries = ArrayList<Entry>()
         val labels = ArrayList<String>()
 
@@ -595,15 +630,15 @@ class IAPrediccionActivity : BaseActivity() {
 
         if (entries.isNotEmpty()) {
             val dataSet = LineDataSet(entries, "Gasto Diario")
-            dataSet.color = android.graphics.Color.parseColor("#6E56FF")
-            dataSet.valueTextColor = android.graphics.Color.WHITE
+            dataSet.color = BankColors.chartPrimary(this)
+            dataSet.valueTextColor = BankColors.chartLabel(this)
             dataSet.lineWidth = 2f
             dataSet.circleRadius = 4f
-            dataSet.setCircleColor(android.graphics.Color.parseColor("#6E56FF"))
+            dataSet.setCircleColor(BankColors.chartPrimary(this))
             dataSet.setDrawValues(false)
             dataSet.mode = LineDataSet.Mode.CUBIC_BEZIER
             dataSet.setDrawFilled(true)
-            dataSet.fillColor = android.graphics.Color.parseColor("#6E56FF")
+            dataSet.fillColor = BankColors.chartPrimary(this)
             dataSet.fillAlpha = 50
 
             val lineData = LineData(dataSet)
@@ -613,7 +648,7 @@ class IAPrediccionActivity : BaseActivity() {
             
             lineChartDias.xAxis.apply {
                 position = XAxis.XAxisPosition.BOTTOM
-                textColor = android.graphics.Color.parseColor("#A0A0A0")
+                textColor = BankColors.chartLabel(this@IAPrediccionActivity)
                 setDrawGridLines(false)
                 granularity = 1f
                 valueFormatter = object : ValueFormatter() {
@@ -625,9 +660,9 @@ class IAPrediccionActivity : BaseActivity() {
             }
 
             lineChartDias.axisLeft.apply {
-                textColor = android.graphics.Color.parseColor("#A0A0A0")
+                textColor = BankColors.chartLabel(this@IAPrediccionActivity)
                 setDrawGridLines(true)
-                gridColor = android.graphics.Color.parseColor("#2A2A40")
+                gridColor = BankColors.chartGrid(this@IAPrediccionActivity)
                 axisMinimum = 0f
             }
             lineChartDias.axisRight.isEnabled = false
@@ -649,15 +684,15 @@ class IAPrediccionActivity : BaseActivity() {
         }
         if (radarEntries.isNotEmpty()) {
             val radarDataSet = RadarDataSet(radarEntries, "Categorías")
-            radarDataSet.color = android.graphics.Color.parseColor("#6E56FF")
-            radarDataSet.fillColor = android.graphics.Color.parseColor("#6E56FF")
+            radarDataSet.color = BankColors.chartPrimary(this)
+            radarDataSet.fillColor = BankColors.chartPrimary(this)
             radarDataSet.setDrawFilled(true)
             radarDataSet.fillAlpha = 180
             radarDataSet.lineWidth = 2f
             val radarData = RadarData(radarDataSet)
             radarChart.data = radarData
             radarChart.xAxis.valueFormatter = IndexAxisValueFormatter(radarLabels)
-            radarChart.xAxis.textColor = android.graphics.Color.parseColor("#A0A0A0")
+            radarChart.xAxis.textColor = BankColors.chartLabel(this)
             radarChart.xAxis.textSize = 10f
             radarChart.yAxis.setDrawLabels(false)
             radarChart.yAxis.axisMinimum = 0f
@@ -691,16 +726,16 @@ class IAPrediccionActivity : BaseActivity() {
         }
         if (barEntries.any { it.y > 0 }) {
             val barDataSet = BarDataSet(barEntries, "Gasto Semanal")
-            barDataSet.color = android.graphics.Color.parseColor("#7CFFB2")
-            barDataSet.valueTextColor = android.graphics.Color.WHITE
+            barDataSet.color = BankColors.chartBar(this)
+            barDataSet.valueTextColor = BankColors.chartLabel(this)
             barDataSet.valueTextSize = 10f
             val barData = BarData(barDataSet)
             barChart.data = barData
             barChart.xAxis.position = XAxis.XAxisPosition.BOTTOM
-            barChart.xAxis.textColor = android.graphics.Color.parseColor("#A0A0A0")
+            barChart.xAxis.textColor = BankColors.chartLabel(this)
             barChart.xAxis.valueFormatter = IndexAxisValueFormatter(listOf("Sem 1", "Sem 2", "Sem 3", "Sem 4+"))
             barChart.xAxis.setDrawGridLines(false)
-            barChart.axisLeft.textColor = android.graphics.Color.parseColor("#A0A0A0")
+            barChart.axisLeft.textColor = BankColors.chartLabel(this)
             barChart.axisLeft.axisMinimum = 0f
             barChart.axisRight.isEnabled = false
             barChart.legend.isEnabled = false
