@@ -74,19 +74,13 @@ interface ApiService {
     @POST("api/metas")
     suspend fun crearMeta(@Body request: CrearMetaRequest): Response<CrearMetaApiResponse>
 
-    @retrofit2.http.PUT("api/metas/{id}/progreso")
-    suspend fun actualizarProgresoMeta(
-        @Path("id") id: Int,
-        @Body request: ActualizarMetaProgresoRequest
-    ): Response<CrearMetaApiResponse>
-
     @retrofit2.http.PUT("api/metas/{id}/pausar")
     suspend fun pausarMeta(@Path("id") id: Int): Response<Map<String, String>>
 }
 
 object RetrofitClient {
 
-    private const val BASE_URL = "http://192.168.12.251:3000/"
+    private const val BASE_URL = "http://192.168.198.223:3000/"
     
     var authToken: String? = null
 

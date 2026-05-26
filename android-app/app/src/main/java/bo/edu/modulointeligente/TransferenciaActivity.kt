@@ -40,6 +40,24 @@ class TransferenciaActivity : BaseActivity() {
 
         cargarDatos(etCuentaOrigen, etContacto)
 
+        etCuentaOrigen.setOnClickListener {
+            etCuentaOrigen.showDropDown()
+        }
+        etCuentaOrigen.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) {
+                etCuentaOrigen.showDropDown()
+            }
+        }
+
+        etContacto.setOnClickListener {
+            etContacto.showDropDown()
+        }
+        etContacto.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) {
+                etContacto.showDropDown()
+            }
+        }
+
         etContacto.setOnItemClickListener { _, _, position, _ ->
             val contacto = contactos[position]
             etNombreDestino.setText(contacto.nombre)

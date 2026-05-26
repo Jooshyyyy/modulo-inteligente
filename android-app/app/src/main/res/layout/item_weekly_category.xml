@@ -29,8 +29,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Alimentación"
-            android:textColor="#FFFFFF"
-            android:textSize="14sp"
+            android:textColor="@color/text_primary"
+            android:textSize="16sp"
             android:textStyle="bold" />
 
         <TextView
@@ -38,8 +38,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Bs. 0.00"
-            android:textColor="#FFFFFF"
-            android:textSize="14sp" />
+            android:textColor="@color/text_primary"
+            android:textSize="16sp" />
     </LinearLayout>
 
     <TextView
@@ -48,7 +48,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
         android:text="0%"
-        android:textColor="#B0B0C0"
-        android:textSize="12sp" />
+        android:textColor="@color/text_muted"
+        android:textSize="15sp" />
 
 </LinearLayout>

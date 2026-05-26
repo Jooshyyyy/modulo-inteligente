@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.view.animation.DecelerateInterpolator
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import bo.edu.modulointeligente.BankColors
 import bo.edu.modulointeligente.PrediccionSemanalCategoria
 import bo.edu.modulointeligente.R
 import java.text.DecimalFormat
@@ -69,7 +70,9 @@ class MonthlyCategoryAdapter(
             val percent = if (total > 0.0 && !total.isNaN()) ((item.monto / total) * 100).roundToInt() else 0
             tvPercent.text = "$percent%"
             vColor.setBackgroundColor(parseColor(item.colorHex))
-            vRoot.setBackgroundColor(if (isSelected) Color.parseColor("#332A55") else Color.TRANSPARENT)
+            vRoot.setBackgroundColor(
+                if (isSelected) BankColors.highlightRow(vRoot.context) else Color.TRANSPARENT
+            )
         }
     }
 }

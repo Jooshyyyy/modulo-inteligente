@@ -34,20 +34,17 @@
                 android:padding="24dp">
 
                 <TextView
+                    style="@style/Text.ModuloInteligente.Section"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Cuenta Origen"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="8dp"
-                    android:background="#000000"
-                    />
+                    android:layout_marginBottom="8dp" />
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="24dp"
-                    android:background="#000000"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+                    style="@style/Widget.ModuloInteligente.ExposedDropdownMenu">
 
                     <AutoCompleteTextView
                         android:id="@+id/etCuentaOrigen"
@@ -68,8 +65,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="24dp"
-                    android:background="#000000"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+                    style="@style/Widget.ModuloInteligente.ExposedDropdownMenu">
 
                     <AutoCompleteTextView
                         android:id="@+id/etContacto"

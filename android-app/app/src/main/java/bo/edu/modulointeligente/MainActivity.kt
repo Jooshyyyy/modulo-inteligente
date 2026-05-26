@@ -1,8 +1,8 @@
 package bo.edu.modulointeligente
 
 import android.os.Bundle
-import android.widget.Button
-import android.widget.EditText
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.textfield.TextInputEditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -17,10 +17,10 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         // Vincular componentes
-        val etCarnet = findViewById<EditText>(R.id.etCarnet)
-        val etPassword = findViewById<EditText>(R.id.etPassword)
-        val btnLogin = findViewById<Button>(R.id.btnLogin)
-        val btnIrRegistro = findViewById<Button>(R.id.btnIrRegistro)
+        val etCarnet = findViewById<TextInputEditText>(R.id.etCarnet)
+        val etPassword = findViewById<TextInputEditText>(R.id.etPassword)
+        val btnLogin = findViewById<MaterialButton>(R.id.btnLogin)
+        val btnIrRegistro = findViewById<MaterialButton>(R.id.btnIrRegistro)
         btnIrRegistro.setOnClickListener {
             val intent = android.content.Intent(this, RegistroActivity::class.java)
             startActivity(intent)

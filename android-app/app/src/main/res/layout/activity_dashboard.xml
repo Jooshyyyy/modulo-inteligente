@@ -76,6 +76,10 @@
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:fitsSystemWindows="true"
+        android:background="@color/surface_white"
+        app:itemTextAppearance="@style/Text.ModuloInteligente.Subtitle"
+        app:itemIconTint="@color/bank_primary"
+        app:itemTextColor="@color/text_primary"
         app:headerLayout="@layout/nav_header"
         app:menu="@menu/nav_menu" />
 
