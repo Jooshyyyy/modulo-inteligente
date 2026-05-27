@@ -80,13 +80,13 @@ interface ApiService {
 
 object RetrofitClient {
 
-    private const val BASE_URL = "http://192.168.198.223:3000/"
+    private const val BASE_URL = "http://192.168.13.143:3000/"
     
     var authToken: String? = null
 
     private val okHttpClient = OkHttpClient.Builder()
         .addInterceptor { chain ->
-            val requestBuilder = chain.request().newBuilder()
+            val requestBuilder =   chain.request().newBuilder()
             authToken?.let {
                 requestBuilder.addHeader("Authorization", "Bearer $it")
             }
