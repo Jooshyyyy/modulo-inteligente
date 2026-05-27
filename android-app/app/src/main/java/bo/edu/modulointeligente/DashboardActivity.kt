@@ -175,15 +175,15 @@ class DashboardActivity : BaseActivity() {
                         when {
                             monto < 80 -> {
                                 tvSem.text = "Alerta IA: Verde (gasto diario bajo)"
-                                tvSem.setTextColor(Color.parseColor("#7CFFB2"))
+                                tvSem.setTextColor(BankColors.success(this@DashboardActivity))
                             }
                             monto < 180 -> {
                                 tvSem.text = "Alerta IA: Amarillo (vigilar gasto)"
-                                tvSem.setTextColor(Color.parseColor("#FFD166"))
+                                tvSem.setTextColor(BankColors.warning(this@DashboardActivity))
                             }
                             else -> {
                                 tvSem.text = "Alerta IA: Rojo (riesgo de sobrepaso)"
-                                tvSem.setTextColor(Color.parseColor("#FF6B6B"))
+                                tvSem.setTextColor(BankColors.error(this@DashboardActivity))
                             }
                         }
                     }
@@ -284,15 +284,15 @@ class DashboardActivity : BaseActivity() {
                 when {
                     topPct < 45 -> {
                         riskText.text = "Riesgo semanal: Verde (gasto diversificado)"
-                        riskText.setTextColor(Color.parseColor("#7CFFB2"))
+                        riskText.setTextColor(BankColors.success(this@DashboardActivity))
                     }
                     topPct < 70 -> {
                         riskText.text = "Riesgo semanal: Amarillo (dependencia moderada)"
-                        riskText.setTextColor(Color.parseColor("#FFD166"))
+                        riskText.setTextColor(BankColors.warning(this@DashboardActivity))
                     }
                     else -> {
                         riskText.text = "Riesgo semanal: Rojo (alta concentración en una categoría)"
-                        riskText.setTextColor(Color.parseColor("#FF6B6B"))
+                        riskText.setTextColor(BankColors.error(this@DashboardActivity))
                     }
                 }
             } catch (e: Exception) {

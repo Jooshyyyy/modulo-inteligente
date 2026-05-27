@@ -1,219 +1,181 @@
-import argparse
 import os
 from datetime import datetime, timedelta
-
+import psycopg
+from psycopg.rows import dict_row
 import joblib
 import numpy as np
+import random
 import pandas as pd
-import psycopg
 from dotenv import load_dotenv
 
-env_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".env"))
-load_dotenv(env_path)
+# Cargar variables desde backend/.env
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "../../.env"))
 
+db_user = os.getenv("DB_USER")
+db_password = os.getenv("DB_PASSWORD")
+db_host = os.getenv("DB_HOST")
+db_port = os.getenv("DB_PORT")
+db_name = os.getenv("DB_NAME")
 
-def cargar_modelos():
-    base_dir = os.path.dirname(__file__)
-    modelo_categoria = joblib.load(os.path.join(base_dir, "modelo_categoria.pkl"))
-    modelo_monto = joblib.load(os.path.join(base_dir, "modelo_monto.pkl"))
-    return modelo_categoria, modelo_monto
+try:
+    conn = psycopg.connect(
+        dbname=db_name,
+        user=db_user,
+        password=db_password,
+        host=db_host,
+        port=db_port,
+        row_factory=dict_row
+    )
+    print("Conexión exitosa a PostgreSQL")
+except Exception as e:
+    raise RuntimeError(f"Error de conexión: {e}")
 
+modelo_cat = joblib.load("modelo_categoria.pkl")
+modelo_monto = joblib.load("modelo_monto.pkl")
 
-def construir_features(fecha_test):
-    dia_semana = fecha_test.weekday()
-    dia_mes = fecha_test.day
-    mes = fecha_test.month
-    dia_anio = fecha_test.timetuple().tm_yday
-    hora = fecha_test.hour
+DIAS_PREDICCION = 90
+HOY = datetime.now()
+
+def generar_features(fecha, rolling7, rolling30):
+    dia_semana = fecha.weekday()
+    dia_mes = fecha.day
+    mes = fecha.month
+    dia_anio = fecha.timetuple().tm_yday
+    hora = random.choice([9, 12, 18])
 
     return {
-        "dia_anio": dia_anio,
-        "dia_semana": dia_semana,
-        "dia_mes": dia_mes,
-        "mes": mes,
-        "hora": hora,
-        "dia_semana_sin": np.sin(2 * np.pi * dia_semana / 7),
-        "dia_semana_cos": np.cos(2 * np.pi * dia_semana / 7),
-        "dia_mes_sin": np.sin(2 * np.pi * dia_mes / 31),
-        "dia_mes_cos": np.cos(2 * np.pi * dia_mes / 31),
-        "hora_sin": np.sin(2 * np.pi * hora / 24),
-        "hora_cos": np.cos(2 * np.pi * hora / 24),
+        'dia_anio': dia_anio,
+        'dia_semana': dia_semana,
+        'dia_mes': dia_mes,
+        'mes': mes,
+        'hora': hora,
+        'dia_semana_sin': np.sin(2*np.pi*dia_semana/7),
+        'dia_semana_cos': np.cos(2*np.pi*dia_semana/7),
+        'dia_mes_sin': np.sin(2*np.pi*dia_mes/31),
+        'dia_mes_cos': np.cos(2*np.pi*dia_mes/31),
+        'hora_sin': np.sin(2*np.pi*hora/24),
+        'hora_cos': np.cos(2*np.pi*hora/24),
+        'monto_rolling_7': rolling7,
+        'monto_rolling_30': rolling30
     }
 
+with conn.cursor() as cur:
+    cur.execute("SELECT id FROM usuarios WHERE email=%s", ('esteban@gmail.com',))
+    row = cur.fetchone()
+    if not row:
+        raise RuntimeError("Usuario no encontrado")
+    usuario_id = row['id']
 
-def _probas_categoria(modelo_categoria, features):
-    x_cat = pd.DataFrame([features])
-    probas = modelo_categoria.predict_proba(x_cat)[0].astype(float)
-    clases = modelo_categoria.classes_
+registros_pred = []
+hist_montos = [100.0]*30
 
-    if np.max(probas) >= 0.999:
-        ruido = np.random.uniform(0.05, 0.15, size=len(probas))
-        probas = probas + ruido
-        probas = probas / probas.sum()
+rangos = {
+    1: (10, 200),     
+    2: (5, 100),      
+    3: (1000, 4000),  
+    4: (100, 500),    
+    5: (500, 3000),   
+    6: (50, 500),     
+    7: (100, 1000),   
+    8: (50, 1000),    
+    9: (50, 2000),    
+    10: (10, 500)     
+}
 
-    temperature = 1.5
-    probas = np.power(probas, 1 / temperature)
-    probas = probas / probas.sum()
-    return probas, clases
+for d in range(DIAS_PREDICCION):
+    fecha_pred = HOY + timedelta(days=d)
+    rolling7 = np.mean(hist_montos[-7:])
+    rolling30 = np.mean(hist_montos[-30:])
+    feats = generar_features(fecha_pred, rolling7, rolling30)
 
+    categorias_dia = set()
 
-def inferir_para_dia(modelo_categoria, modelo_monto, fecha_test):
-    """Una fila por día: categoría muestreada (compatibilidad / pruebas)."""
-    features = construir_features(fecha_test)
-    probas, clases = _probas_categoria(modelo_categoria, features)
-    categoria_pred = int(np.random.choice(clases, p=probas))
-    idx = int(np.where(clases == categoria_pred)[0][0])
-    score_confianza = float(probas[idx])
-    x_monto = pd.DataFrame([{**features, "categoria_id": categoria_pred}])
-    monto_pred = max(0.0, float(modelo_monto.predict(x_monto)[0]))
-    return categoria_pred, round(monto_pred, 2), score_confianza
+    X_cat = pd.DataFrame([feats])
+    proba = modelo_cat.predict_proba(X_cat)[0]
+    clases = modelo_cat.classes_
 
+    dia_sem = fecha_pred.weekday()  # 0=lunes, 6=domingo
+    dia_mes = fecha_pred.day
 
-def inferir_distribucion_dia(modelo_categoria, modelo_monto, fecha_test, top_k=6):
-    """
-    Varias filas por día: siempre las top_k probabilidades (>0), re-normalizadas,
-    para que exista reparto visible aunque el umbral 5%% dejara una sola clase.
-    """
-    features = construir_features(fecha_test)
-    probas, clases = _probas_categoria(modelo_categoria, features)
+    for pred_num in range(2):
 
-    winner_idx = int(np.argmax(probas))
-    winner_cat = int(clases[winner_idx])
-    x_monto_w = pd.DataFrame([{**features, "categoria_id": winner_cat}])
-    monto_total = max(0.0, float(modelo_monto.predict(x_monto_w)[0]))
+        # ==============================
+        # REGLAS FUERTES POR CONTEXTO
+        # ==============================
 
-    order = np.argsort(-probas)
-    idxs = []
-    for i in order[:top_k]:
-        ii = int(i)
-        if float(probas[ii]) < 1e-12:
-            continue
-        idxs.append(ii)
+        if dia_mes in [1, 2, 3]:
+            # INICIO DE MES (MUY FUERTE)
+            opciones = [3, 4, 5]  # vivienda, servicios, educación
+            categoria_pred = opciones[pred_num % len(opciones)]
 
-    if not idxs:
-        idxs = [winner_idx]
+        elif dia_sem >= 5:
+            # FIN DE SEMANA (FUERTE)
+            opciones = [7, 2]  # entretenimiento, transporte
+            categoria_pred = opciones[pred_num % 2]
 
-    sub_p = probas[idxs].astype(float)
-    sub_p = sub_p / sub_p.sum()
+        else:
+            # ENTRE SEMANA → usar modelo PERO con sesgo a alimentación
+            if pred_num == 0:
+                categoria_pred = clases[np.argmax(proba)]
+            else:
+                top_idx = np.argsort(proba)[-3:]
+                top_cats = clases[top_idx]
+                top_probs = proba[top_idx]
 
-    filas = []
-    for j, fi in enumerate(idxs):
-        cat_id = int(clases[fi])
-        m_part = round(float(sub_p[j]) * monto_total, 2)
-        conf = float(probas[fi])
-        if m_part > 0:
-            filas.append((cat_id, m_part, conf))
+                # sesgo a alimentación
+                for i, c in enumerate(top_cats):
+                    if c == 1:
+                        top_probs[i] *= 1.5
 
-    if not filas:
-        filas.append((winner_cat, round(monto_total, 2), float(probas[winner_idx])))
+                top_probs = top_probs / top_probs.sum()
+                categoria_pred = np.random.choice(top_cats, p=top_probs)
 
-    return filas
+        # evitar duplicados en el mismo día
+        if categoria_pred in categorias_dia:
+            alternativas = [c for c in clases if c not in categorias_dia]
+            if alternativas:
+                categoria_pred = random.choice(alternativas)
 
+        categorias_dia.add(categoria_pred)
 
-def rango_fechas(fecha_inicio, fecha_fin):
-    fecha = fecha_inicio
-    while fecha <= fecha_fin:
-        yield fecha
-        fecha += timedelta(days=1)
+        # confianza
+        if categoria_pred in [1,2]:
+            confianza = round(random.uniform(0.6,0.8),4)
+        elif categoria_pred in [3,4,5,7]:
+            confianza = round(random.uniform(0.4,0.6),4)
+        else:
+            confianza = round(random.uniform(0.5,0.7),4)
 
+        feats_monto = list(feats.values()) + [categoria_pred]
+        X_monto = np.array([feats_monto])
+        pred_log = modelo_monto.predict(X_monto)[0]
+        monto_pred = np.exp(pred_log) - 1
 
-def fecha_inicio_default():
-    now = datetime.now()
-    return now.replace(day=20).strftime("%Y-%m-%d")
+        min_val, max_val = rangos.get(int(categoria_pred), (0, 5000))
+        monto_pred = np.clip(monto_pred, min_val, max_val)
 
+        hist_montos.append(float(monto_pred))
 
-def fecha_fin_mes(fecha_inicio):
-    if fecha_inicio.month == 12:
-        siguiente_mes = fecha_inicio.replace(year=fecha_inicio.year + 1, month=1, day=1)
-    else:
-        siguiente_mes = fecha_inicio.replace(month=fecha_inicio.month + 1, day=1)
-    return siguiente_mes - timedelta(days=1)
+        registros_pred.append({
+            'usuario_id': usuario_id,
+            'categoria_id': int(categoria_pred),
+            'fecha_prediccion': fecha_pred.date(),
+            'monto_proyectado': round(float(monto_pred),2),
+            'score_confianza': confianza,
+            'es_modelo_personal': True
+        })
 
+        print(f"usuario={usuario_id} fecha={fecha_pred.date()} categoria={categoria_pred} monto={round(monto_pred,2)} confianza={confianza}")
 
-def borrar_predicciones_del_dia(cur, usuario_id, fecha_prediccion):
-    cur.execute(
-        """
-        DELETE FROM predicciones_gastos
-        WHERE usuario_id = %s
-          AND fecha_prediccion::date = %s::date
-        """,
-        (usuario_id, fecha_prediccion),
-    )
+with conn.cursor() as cur:
+    query = """INSERT INTO predicciones_gastos 
+               (usuario_id, categoria_id, fecha_prediccion, monto_proyectado, score_confianza, es_modelo_personal)
+               VALUES (%(usuario_id)s, %(categoria_id)s, %(fecha_prediccion)s, %(monto_proyectado)s, %(score_confianza)s, %(es_modelo_personal)s)"""
 
+    for i in range(0, len(registros_pred), 100):
+        cur.executemany(query, registros_pred[i:i+100])
 
-def insertar_prediccion(cur, usuario_id, categoria_id, fecha_prediccion, monto, confianza):
-    cur.execute(
-        """
-        INSERT INTO predicciones_gastos (
-            usuario_id, categoria_id, fecha_prediccion,
-            monto_proyectado, score_confianza, es_modelo_personal
-        )
-        VALUES (%s, %s, %s, %s, %s, %s)
-        """,
-        (usuario_id, categoria_id, fecha_prediccion, monto, confianza, True),
-    )
+    conn.commit()
+    print(f"{len(registros_pred)} predicciones insertadas en la tabla predicciones_gastos")
 
-
-def main():
-    parser = argparse.ArgumentParser(description="Generador de predicciones de gastos")
-    parser.add_argument("--usuario-id", type=int, default=10)
-    parser.add_argument("--fecha-inicio", type=str, default=fecha_inicio_default())
-    parser.add_argument("--fecha-fin", type=str, default=None)
-    parser.add_argument("--dias", type=int, default=None)
-    args = parser.parse_args()
-
-    fecha_inicio = datetime.strptime(args.fecha_inicio, "%Y-%m-%d")
-    if args.dias is not None and args.dias > 0:
-        fecha_fin = fecha_inicio + timedelta(days=args.dias - 1)
-    elif args.fecha_fin:
-        fecha_fin = datetime.strptime(args.fecha_fin, "%Y-%m-%d")
-    else:
-        # Generar 3 meses desde fecha_inicio
-        month = fecha_inicio.month - 1 + 3
-        year = fecha_inicio.year + month // 12
-        month = month % 12 + 1
-        day = min(fecha_inicio.day, 28)  # evitar problemas con febrero
-
-        fecha_fin = fecha_inicio.replace(year=year, month=month, day=day) - timedelta(days=1)
-
-    modelo_categoria, modelo_monto = cargar_modelos()
-
-    conn = psycopg.connect(
-        dbname=os.getenv("DB_NAME", "postgres"),
-        user=os.getenv("DB_USER", "postgres"),
-        password=os.getenv("DB_PASSWORD", ""),
-        host=os.getenv("DB_HOST", "localhost"),
-        port=os.getenv("DB_PORT", "5432"),
-    )
-
-    try:
-        with conn.cursor() as cur:
-            for fecha in rango_fechas(fecha_inicio, fecha_fin):
-                filas = inferir_distribucion_dia(modelo_categoria, modelo_monto, fecha)
-                borrar_predicciones_del_dia(cur, args.usuario_id, fecha.date())
-                for categoria_id, monto, confianza in filas:
-                    insertar_prediccion(
-                        cur,
-                        args.usuario_id,
-                        categoria_id,
-                        fecha.date(),
-                        monto,
-                        confianza,
-                    )
-
-                resumen = ", ".join(
-                    f"cat={cid} m={m} conf={round(cf, 3)}"
-                    for cid, m, cf in filas
-                )
-                print(
-                    f"[OK] usuario={args.usuario_id} fecha={fecha.date()} "
-                    f"filas={len(filas)} | {resumen}"
-                )
-
-            conn.commit()
-    finally:
-        conn.close()
-
-
-if __name__ == "__main__":
-    main()
+conn.close()
