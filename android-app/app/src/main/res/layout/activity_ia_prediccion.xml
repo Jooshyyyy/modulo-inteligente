@@ -40,9 +40,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="24dp"
-                    app:cardBackgroundColor="@color/card_surface_alt"
                     app:cardCornerRadius="24dp"
-                    app:cardElevation="0dp"
+                    app:cardElevation="2dp"
                     app:strokeColor="@color/card_border"
                     app:strokeWidth="1dp">
 
@@ -50,6 +49,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
+                        android:background="@drawable/bg_gradient_card"
                         android:padding="20dp">
 
                         <TextView
@@ -58,7 +58,7 @@
                             android:letterSpacing="0.05"
                             android:text="Análisis del Coach de ahorro (IA)"
                             android:textAllCaps="true"
-                            android:textColor="@color/text_primary"
+                            android:textColor="#E0F2FE"
                             android:textSize="11sp"
                             android:textStyle="bold" />
 
@@ -79,7 +79,7 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="Gasto proyectado del mes"
-                                    android:textColor="@color/text_muted"
+                                    android:textColor="#C0E0F8"
                                     android:textSize="11sp" />
 
                                 <TextView
@@ -88,8 +88,8 @@
                                     android:layout_height="wrap_content"
                                     android:layout_marginTop="4dp"
                                     android:text="—"
-                                    android:textColor="@color/text_primary"
-                                    android:textSize="18sp"
+                                    android:textColor="@color/white"
+                                    android:textSize="20sp"
                                     android:textStyle="bold" />
                             </LinearLayout>
 
@@ -104,7 +104,7 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="Días con predicción"
-                                    android:textColor="@color/text_muted"
+                                    android:textColor="#C0E0F8"
                                     android:textSize="11sp" />
 
                                 <TextView
@@ -113,8 +113,8 @@
                                     android:layout_height="wrap_content"
                                     android:layout_marginTop="4dp"
                                     android:text="—"
-                                    android:textColor="@color/text_primary"
-                                    android:textSize="18sp"
+                                    android:textColor="@color/white"
+                                    android:textSize="20sp"
                                     android:textStyle="bold" />
                             </LinearLayout>
                         </LinearLayout>
@@ -123,23 +123,33 @@
                             android:id="@+id/tvCoachSemaforo"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="10dp"
-                            android:background="@color/bg_light"
-                            android:paddingHorizontal="10dp"
+                            android:layout_marginTop="12dp"
+                            android:background="@drawable/bg_badge_light"
+                            android:paddingHorizontal="12dp"
                             android:paddingVertical="6dp"
                             android:text="Riesgo: —"
                             android:textColor="@color/text_secondary"
-                            android:textSize="15sp"
+                            android:textSize="14sp"
                             android:textStyle="bold" />
 
-                        <TextView
-                            android:id="@+id/tvCoachNarrativa"
+                        <!-- Burbuja de cita estilizada con borde izquierdo para el Coach IA -->
+                        <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="14dp"
-                            android:lineSpacingExtra="3dp"
-                            android:textColor="@color/text_primary"
-                            android:textSize="16sp" />
+                            android:layout_marginTop="16dp"
+                            android:background="@drawable/bg_quote_card"
+                            android:padding="16dp"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/tvCoachNarrativa"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:lineSpacingExtra="4dp"
+                                android:textColor="@color/text_primary"
+                                android:textSize="15sp"
+                                android:textStyle="italic" />
+                        </LinearLayout>
 
                         <androidx.recyclerview.widget.RecyclerView
                             android:id="@+id/rvCoachIndicadores"

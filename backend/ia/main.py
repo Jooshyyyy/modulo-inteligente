@@ -25,7 +25,6 @@ CATEGORIAS_DISPONIBLES = [
     'Otros'
 ]
 
-# Umbral bajo tal como solicitado para forzar categorización frente a "Otros"
 UMBRAL_CONFIANZA = 0.15 
 
 class TransaccionInput(BaseModel):
