@@ -44,4 +44,10 @@
     <color name="secondary_gold_dark">@color/bank_gold_dark</color>
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
+    <color name="savings_mint">#5FD6B3</color>
+    <color name="savings_green">#5FD6B3</color>
+    <color name="savings_green_dark">#2FA38A</color>
+    <color name="text_savings_accent">#2FA38A</color>
+    <color name="text_on_savings">#FFFFFF</color>
+    <color name="savings_gold">#D4A017</color>
 </resources>
