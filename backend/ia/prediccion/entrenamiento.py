@@ -31,7 +31,6 @@ def train():
     df['fecha'] = pd.to_datetime(df['fecha'])
     df = df.sort_values('fecha').reset_index(drop=True)
 
-    # Características temporales
     df['dia_semana'] = df['fecha'].dt.dayofweek
     df['mes'] = df['fecha'].dt.month
     df['dia_mes'] = df['fecha'].dt.day
@@ -40,7 +39,6 @@ def train():
     df['es_fin_semana'] = (df['dia_semana'] >= 5).astype(int)
     df['es_inicio_mes'] = (df['dia_mes'] <= 3).astype(int)
 
-    # Codificación cíclica
     df['dia_semana_sin'] = np.sin(2*np.pi*df['dia_semana']/7)
     df['dia_semana_cos'] = np.cos(2*np.pi*df['dia_semana']/7)
     df['dia_mes_sin'] = np.sin(2*np.pi*df['dia_mes']/31)
@@ -48,7 +46,6 @@ def train():
     df['hora_sin'] = np.sin(2*np.pi*df['hora']/24)
     df['hora_cos'] = np.cos(2*np.pi*df['hora']/24)
 
-    # Rolling globales
     df['monto_rolling_7'] = df['monto'].rolling(7, min_periods=1).mean()
     df['monto_rolling_30'] = df['monto'].rolling(30, min_periods=1).mean()
     df = df.fillna(0)
@@ -64,7 +61,6 @@ def train():
 
     tscv = TimeSeriesSplit(n_splits=5)
 
-    # Clasificador
     model_cat = HistGradientBoostingClassifier(
         max_depth=8,
         learning_rate=0.1,
@@ -85,7 +81,6 @@ def train():
     print(f"F1 promedio: {np.mean(f1_scores):.4f}")
     joblib.dump(model_cat, "modelo_categoria.pkl")
 
-    # Regresor
     df['log_monto'] = np.log(df['monto'] + 1)
     features_reg = features + ['categoria_id']
 
